@@ -7,6 +7,7 @@ entity Minesweeper is
 	generic (
 		pattern_num	: integer := 2-1;
 		clk_cycle	: integer := 2000000;
+		seg_cycle	: integer := 2000000/10;
 		baud_cycle	: integer := 2000000/100;
 		joy_cycle	: integer := 2000000/2
 	);
@@ -193,6 +194,11 @@ begin
 	end process state_name;
 	
 	timmer : process(CLK) is
+		variable sec_count	: integer range 0 to clk_cycle := 0;
+		variable m_count		: integer range 0 to clk_cycle/2 := 0;
+		variable h_count		: integer range 0 to clk_cycle/2 := 0;
+		variable digit_count	: integer range 0 to seg_cycle := 0;
+	
 		variable s0		: std_logic_vector (3 downto 0) := "0000";
 		variable s1		: std_logic_vector (3 downto 0) := "0000";
 		variable m0		: std_logic_vector (3 downto 0) := "0000";
@@ -204,78 +210,69 @@ begin
 
 			if CLK'event and CLK = '1' then
 
-				sec_count <= sec_count + 1;
+				sec_count := sec_count + 1;
 				if sec_count = 1 then
-					s0 <= s0 + 1;
+					s0 := s0 + 1;
 				end if;
 				
-				if sec_count < clk_cycle/2 or PB_M = '1' or PB_H = '1' then
-					s_dot <= '1';
+				if sec_count < clk_cycle/2 then
+					s_dot := '1';
 				else
-					s_dot <= '0';
+					s_dot := '0';
 				end if;
-				
-				if PB_M = '1' then
-					m_count <= m_count + 1;
-				end if;	
+
 				if m_count = clk_cycle/2 then
-					m0 <= m0 + 1;
-					s0 <= "0000";
-					s1 <= "0000";
+					m0 := m0 + 1;
+					s0 := "0000";
+					s1 := "0000";
 				end if;
 				
-				if PB_H = '1' then
-					h_count <= h_count + 1;
-				end if;
 				if h_count = clk_cycle/2 then
-					h0 <= h0 + 1;
-					s0 <= "0000";
-					s1 <= "0000";
+					h0 := h0 + 1;
+					s0 := "0000";
+					s1 := "0000";
 				end if;
 
 				if s0 = "1010" then
-					s0 <= "0000";
-					s1 <= s1 + 1;
+					s0 := "0000";
+					s1 := s1 + 1;
 				elsif s1 = "0110" then
-					s1 <= "0000";
-					m0 <= m0 + 1;
+					s1 := "0000";
+					m0 := m0 + 1;
 				elsif m0 = "1010" then
-					m0 <= "0000";
-					m1 <= m1 + 1;
+					m0 := "0000";
+					m1 := m1 + 1;
 				elsif m1 = "0110" then
-					m1 <= "0000";
-					if PB_M = '0' then 
-						h0 <= h0 + 1;
-					end if;
+					m1 := "0000";
 				elsif h0 = "1010" then
-					h0 <= "0000";
-					h1 <= h1 + 1;
+					h0 := "0000";
+					h1 := h1 + 1;
 				elsif h1 = "0010" and h0 = "0100" then
-					h0 <= "0000";
-					h1 <= "0000";
+					h0 := "0000";
+					h1 := "0000";
 				end if;
 
-				digit_count <= digit_count + 1;				
-				if digit_count < digit_cycle/4 then
-					BCD <= m0;
+				digit_count := digit_count + 1;				
+				if digit_count < seg_cycle/4 then
+					BCD <= s0;
 					SEG(7) <= '0';
 					COM <= "1110";
-				elsif digit_count < digit_cycle/2 then
-					BCD <= m1;
+				elsif digit_count < seg_cycle/2 then
+					BCD <= s1;
 					SEG(7) <= s_dot;
 					COM <= "1101";
-				elsif digit_count < digit_cycle*3/4 then
-					BCD <= h0;
+				elsif digit_count < seg_cycle*3/4 then
+					BCD <= m0;
 					SEG(7) <= s_dot;
 					COM <= "1011";
-				elsif digit_count < digit_cycle then
-					BCD <= h1;
+				elsif digit_count < seg_cycle then
+					BCD <= m1;
 					SEG(7) <= '0';
 					COM <= "0111";
 				end if;
 			
 			end if;
-	end process timer;
+	end process timmer;
 
 	clkdiv_clk : process (CLK) is
 		variable count : integer range 0 to clk_cycle := 0;
