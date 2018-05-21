@@ -5,11 +5,11 @@ use ieee.numeric_std.all;
 
 entity Minesweeper is
 	generic (
-		pattern_num	: integer := 2-1;
-		clk_cycle	: integer := 2000000;
-		seg_cycle	: integer := 2000000/10;
-		baud_cycle	: integer := 2000000/100;
-		joy_cycle	: integer := 2000000/2
+		pattern_num	: integer := 30-1;
+		clk_cycle	: integer := 20000000;
+		seg_cycle	: integer := 20000000/20;
+		baud_cycle	: integer := 20000000/100;
+		joy_cycle	: integer := 20000000/4
 	);
 
 	port (
@@ -36,6 +36,34 @@ architecture Behavioral of Minesweeper is
 	type RamType is array(0 to pattern_num, 0 to 35) of integer range 0 to 15;
 	signal table : RamType := (
 		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
+		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 ),
+		(0,1,2,3,15,1,  0,1,15,15,3,2,   1,2,3,2,2,15,  1,15,2,1,2,1,  2,2,2,15,1,0,  15,1,1,1,1,0 ),
 		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 )
 	);
 
@@ -61,7 +89,7 @@ begin
 				L <= "00000001";
 				STATE <= "00";	-- send Start
 				STATUS <= "00001"; -- send first lerg sudd
-				if (JOY(4)='1') then
+				if JOY(4)='1' and joy_clk='1' then
 					NextState <= selLevel;
 				end if;
 
@@ -70,12 +98,14 @@ begin
 				STATE <= "00";	-- send select level
 				STATUS <= "00010"; -- send level
 
-				if (JOY(1)='1') then			--easy
-					level <= 1;
-				elsif (JOY(0)='1') then		--normal
-					level <= 2;
-				elsif (JOY(3)='1') then		--hard
-					level <= 3;
+				if joy_clk='1' then
+					if (JOY(1)='1') then			--easy
+						level <= 1;
+					elsif (JOY(0)='1') then		--normal
+						level <= 2;
+					elsif (JOY(3)='1') then		--hard
+						level <= 3;
+					end if;
 				end if;
 
 				if (level=1 or level=2 or level=3) then
@@ -102,6 +132,7 @@ begin
 				if (joy_clk='1') then
 					if (JOY(0)='1') then		--UP
 						if ( y > 0 ) then
+							MN <= "00000001";
 							-- send  deleteframe x,y
 							STATUS <= "01100";
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -114,6 +145,7 @@ begin
 						end if;
 					elsif (JOY(1)='1')then	--Left
 						if ( x > 0 ) then 
+							MN <= "00000010";
 							-- send  deleteframe x,y
 							STATUS <= "01100";
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -126,6 +158,7 @@ begin
 						end if;
 					elsif (JOY(2)='1')then	--Down
 						if ( y < 5 ) then 
+							MN <= "00000100";
 							-- send  deleteframe x,y
 							STATUS <= "01100";
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -138,6 +171,7 @@ begin
 						end if;
 					elsif (JOY(3)='1')then	--Right
 						if ( x < 5 ) then 
+							MN <= "00001000";
 							-- send  deleteframe x,y
 							STATUS <= "01100";
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -149,8 +183,8 @@ begin
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 						end if;
 					elsif (JOY(4)='1')then	--Center
-
 						if (table(level, 5*x + y) = 0) then				-- space
+							MN <= "10000000";
 							STATUS <= "00001";	-- send space
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
@@ -163,10 +197,12 @@ begin
 									table(level, 5*x + y) = 6 or
 									table(level, 5*x + y) = 7 or
 									table(level, 5*x + y) = 8 ) then		-- number
+							MN <= "01000000";
 							STATUS <= std_logic_vector(to_unsigned(table(level, 5*x + y) +2, STATUS'length));	-- send space
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 						elsif (table(level, 5*x + y) = 15) then		-- bomb booomm
+							MN <= "00100000";
 							STATUS <= "10000";	-- send space
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
@@ -195,42 +231,19 @@ begin
 	
 	timmer : process(CLK) is
 		variable sec_count	: integer range 0 to clk_cycle := 0;
-		variable m_count		: integer range 0 to clk_cycle/2 := 0;
-		variable h_count		: integer range 0 to clk_cycle/2 := 0;
 		variable digit_count	: integer range 0 to seg_cycle := 0;
 	
 		variable s0		: std_logic_vector (3 downto 0) := "0000";
 		variable s1		: std_logic_vector (3 downto 0) := "0000";
 		variable m0		: std_logic_vector (3 downto 0) := "0000";
 		variable m1		: std_logic_vector (3 downto 0) := "0000";
-		variable h0		: std_logic_vector (3 downto 0) := "0000";
-		variable h1		: std_logic_vector (3 downto 0) := "0000";
-		variable s_dot	: std_logic := '0';
 	begin
 
 			if CLK'event and CLK = '1' then
 
 				sec_count := sec_count + 1;
-				if sec_count = 1 then
+				if sec_count = clk_cycle then
 					s0 := s0 + 1;
-				end if;
-				
-				if sec_count < clk_cycle/2 then
-					s_dot := '1';
-				else
-					s_dot := '0';
-				end if;
-
-				if m_count = clk_cycle/2 then
-					m0 := m0 + 1;
-					s0 := "0000";
-					s1 := "0000";
-				end if;
-				
-				if h_count = clk_cycle/2 then
-					h0 := h0 + 1;
-					s0 := "0000";
-					s1 := "0000";
 				end if;
 
 				if s0 = "1010" then
@@ -244,12 +257,6 @@ begin
 					m1 := m1 + 1;
 				elsif m1 = "0110" then
 					m1 := "0000";
-				elsif h0 = "1010" then
-					h0 := "0000";
-					h1 := h1 + 1;
-				elsif h1 = "0010" and h0 = "0100" then
-					h0 := "0000";
-					h1 := "0000";
 				end if;
 
 				digit_count := digit_count + 1;				
@@ -259,18 +266,18 @@ begin
 					COM <= "1110";
 				elsif digit_count < seg_cycle/2 then
 					BCD <= s1;
-					SEG(7) <= s_dot;
+					SEG(7) <= '0';
 					COM <= "1101";
 				elsif digit_count < seg_cycle*3/4 then
 					BCD <= m0;
-					SEG(7) <= s_dot;
+					SEG(7) <= '1';
 					COM <= "1011";
 				elsif digit_count < seg_cycle then
 					BCD <= m1;
 					SEG(7) <= '0';
 					COM <= "0111";
 				end if;
-			
+
 			end if;
 	end process timmer;
 
