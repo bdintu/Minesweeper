@@ -7,9 +7,9 @@ entity Minesweeper is
 	generic (
 		pattern_num	: integer := 30-1;
 		seed_num		: integer := 9;
-		clk_cycle	: integer := 25000000;
-		seg_cycle	: integer := 25000000/240;
-		baud_cycle	: integer := 25000000/10;
+		clk_cycle	: integer := 18000000;
+		seg_cycle	: integer := 18000000/240;
+		baud_cycle	: integer := 18000000/10;
 		joy_cycle	: integer := 25000000/5
 	);
 
@@ -226,11 +226,9 @@ begin
 					elsif (JOY(4)='0')then	--Center
 						if (table(level, 5*x + y) = 0) then				-- space
 							--MN <= "10000000";
-							if baud_clk = '1' then
 								STATUS <= "00001";	-- send space
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							end if;
 							NextState <= loopGame;
 						elsif (	table(level, 5*x + y) = 1 or
 									table(level, 5*x + y) = 2 or
@@ -241,19 +239,15 @@ begin
 									table(level, 5*x + y) = 7 or
 									table(level, 5*x + y) = 8 ) then		-- number
 							--MN <= "01000000";
-							if baud_clk = '1' then
 								STATUS <= std_logic_vector(to_unsigned(table(level, 5*x + y) +2, STATUS'length));	-- send space
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							end if;
 							NextState <= loopGame;
 						elsif (table(level, 5*x + y) = 15) then		-- bomb booomm
 							--MN <= "00100000";
-							if baud_clk = '1' then
 								STATUS <= "10000";	-- send space
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							end if;
 							NextState <= Lose;
 						end if;
 					end if;
