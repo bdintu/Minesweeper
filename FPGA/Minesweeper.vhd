@@ -7,10 +7,10 @@ entity Minesweeper is
 	generic (
 		pattern_num	: integer := 30-1;
 		seed_num		: integer := 9;
-		clk_cycle	: integer := 18000000;
-		seg_cycle	: integer := 180000000/240;
-		baud_cycle	: integer := 18000000/10;
-		joy_cycle	: integer := 18000000/5
+		clk_cycle	: integer := 25000000;
+		seg_cycle	: integer := 25000000/240;
+		baud_cycle	: integer := 25000000/10;
+		joy_cycle	: integer := 25000000/5
 	);
 
 	port (
@@ -78,6 +78,8 @@ architecture Behavioral of Minesweeper is
 	signal bcd	: std_logic_vector (3 downto 0) := "0000";
 
 	signal is_send, baud_clk, joy_clk : std_logic := '0';
+	
+	signal x, y : integer range 0 to 5 := 0;
 
 	signal signal_joy : std_logic_vector (4 downto 0);
 
@@ -85,9 +87,10 @@ begin
 
 	signal_joy <= JOY;
 	MN(4 downto 0) <= signal_joy;
+	
+	MN(7) <= baud_clk;
 
 	state_name : process (NextState, PB, CLK, baud_clk, joy_clk) is
-		variable x, y : integer range 0 to 5 := 0;
 	begin
 		if PB='1' then
 			NextState <= Start;
@@ -101,10 +104,10 @@ begin
 				STATE <= "00";	-- send Start
 				STATUS <= "00001"; -- send first lerg sudd
 				level <= 0;
-				MN(7 downto 5) <= "001";
+				MN(6 downto 5) <= "01";
 
 				if JOY(4)='0' and joy_clk='1' then
-					MN(7 downto 5) <= "101";
+					MN(6 downto 5) <= "01";
 					NextState <= selLevel;
 				else
 					NextState <= Start;
@@ -168,12 +171,13 @@ begin
 						if ( y > 0 ) then
 							--MN <= "00000001";
 							-- send  deleteframe x,y
-							if baud_clk = '1' then
+
 								STATUS <= "01101";
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							end if;
-							y := y -1;
+								y <= y -1;
+
+							
 							-- send drawFrame(x,y)
 							NextState <= DrawFrame;
 						end if;
@@ -181,12 +185,13 @@ begin
 						if ( x > 0 ) then
 							--MN <= "00000010";
 							-- send  deleteframe x,y
-							if baud_clk = '1' then
+
 								STATUS <= "01101";
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							end if;
-							x := x -1;
+								x <= x -1;
+
+							
 							-- send drawFrame(x,y)
 							NextState <= DrawFrame;
 						end if;
@@ -194,12 +199,13 @@ begin
 						if ( y < 5 ) then 
 							--MN <= "00000100";
 							-- send  deleteframe x,y
-							if baud_clk = '1' then
+
 								STATUS <= "01101";
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							end if;
-							y := y +1;
+								y <= y +1;
+		
+							
 							-- send drawFrame(x,y)
 							NextState <= DrawFrame;
 						end if;
@@ -207,12 +213,13 @@ begin
 						if ( x < 5 ) then 
 							--MN <= "00001000";
 							-- send  deleteframe x,y
-							if baud_clk = '1' then
+
 								STATUS <= "01101";
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							end if;
-							x := x +1;
+								x <= x +1;
+							
+							
 							-- send drawFrame(x,y)
 							NextState <= DrawFrame;
 						end if;
@@ -267,7 +274,7 @@ begin
 		--		NextState <= Start;
 
 			when others =>
-				MN(7 downto 5) <= "000";
+				MN(6 downto 5) <= "00";
 				--NextState <= Start;
 		end case;
 		
