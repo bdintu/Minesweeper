@@ -7,10 +7,10 @@ entity Minesweeper is
 	generic (
 		pattern_num	: integer := 30-1;
 		seed_num		: integer := 9;
-		clk_cycle	: integer := 17000000;
-		seg_cycle	: integer := 17000000/100;
-		baud_cycle	: integer := 17000000/10;
-		joy_cycle	: integer := 17000000/5
+		clk_cycle	: integer := 18000000;
+		seg_cycle	: integer := 180000000/240;
+		baud_cycle	: integer := 18000000/10;
+		joy_cycle	: integer := 18000000/5
 	);
 
 	port (
@@ -32,7 +32,7 @@ entity Minesweeper is
 end Minesweeper;
 
 architecture Behavioral of Minesweeper is
-	type StateType is ( Start, selLevel, randTable, DrawFrame, loopGame, Win, Lose );
+	type StateType is ( Start, selLevel, randTable, DrawFrame, loopGame, Win, Lose);
 	signal NextState : StateType;
 
 	type RamType is array(0 to pattern_num, 0 to 35) of integer range 0 to 15;
@@ -77,7 +77,7 @@ architecture Behavioral of Minesweeper is
 
 	signal bcd	: std_logic_vector (3 downto 0) := "0000";
 
-	signal is_send, clk_1ms, baud_clk, joy_clk : std_logic := '0';
+	signal is_send, baud_clk, joy_clk : std_logic := '0';
 
 	signal signal_joy : std_logic_vector (4 downto 0);
 
@@ -274,7 +274,8 @@ begin
 		end if;
 	end process state_name;
 
-	timmer : process(clk_1ms) is
+	timmer : process(CLK) is
+		variable sec_count	: integer range 0 to clk_cycle := 0;
 		variable digit_count	: integer range 0 to seg_cycle := 0;
 
 		variable s0		: std_logic_vector (3 downto 0) := "0000";
@@ -283,9 +284,12 @@ begin
 		variable m1		: std_logic_vector (3 downto 0) := "0000";
 	begin
 
-			if clk_1ms'event and clk_1ms = '1' then
+			if CLK'event and CLK = '1' then
 
-				s0 := s0 + 1;
+				sec_count := sec_count + 1;
+				if sec_count = clk_cycle then
+					s0 := s0 + 1;
+				end if;
 
 				if s0 = "1010" then
 					s0 := "0000";
@@ -299,9 +303,6 @@ begin
 				elsif m1 = "0110" then
 					m1 := "0000";
 				end if;
-			end if;
-	
-			if CLK'event and CLK = '1' then
 
 				digit_count := digit_count + 1;				
 				if digit_count < seg_cycle/4 then
@@ -324,19 +325,6 @@ begin
 
 			end if;
 	end process timmer;
-
-	clkdiv_clk : process (CLK) is
-		variable count : integer range 0 to clk_cycle := 0;
-	begin 
-		if (CLK'event and CLK='1') then
-			count := count + 1;
-			if (count = clk_cycle) then
-				clk_1ms <= '1';
-			else
-				clk_1ms <= '0';
-			end if;
-		end if;
-	end process clkdiv_clk;
 
 	clkdiv_send : process (CLK) is
 		variable count : integer range 0 to baud_cycle := 0;
