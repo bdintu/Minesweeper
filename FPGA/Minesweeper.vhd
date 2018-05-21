@@ -6,10 +6,11 @@ use ieee.numeric_std.all;
 entity Minesweeper is
 	generic (
 		pattern_num	: integer := 30-1;
+		seed_num		: integer := 9;
 		clk_cycle	: integer := 20000000;
 		seg_cycle	: integer := 20000000/200;
-		baud_cycle	: integer := 20000000/100;
-		joy_cycle	: integer := 20000000/4
+		baud_cycle	: integer := 20000000/10;
+		joy_cycle	: integer := 20000000/8
 	);
 
 	port (
@@ -19,7 +20,7 @@ entity Minesweeper is
 
 		L			: out std_logic_vector (7 downto 0);
 		MN			: out std_logic_vector (7 downto 0);
-		
+
 		SEG		: out std_logic_vector (7 downto 0);
 		COM		: out std_logic_vector (3 downto 0);
 
@@ -68,9 +69,8 @@ architecture Behavioral of Minesweeper is
 		(2,2,2,15,2,1,  15,15,3,2,15,1,  3,15,2,2,2,1,  1,1,2,15,1,0,  0,1,2,2,1,0,   0,1,15,1,0,0 )
 	);
 
-	subtype countpattern_type is integer range 0 to 9;
-	signal seed : countpattern_type := 0;
-	signal seedxxx : countpattern_type := 0;
+	signal seed : integer range 0 to seed_num := 0;
+	signal seedxxx : integer range 0 to seed_num := 0;
 
 	signal level : integer range 0 to 3 := 0;
 	signal use_table : integer range 0 to pattern_num := 0;
@@ -87,7 +87,7 @@ begin
 	signal_joy <= JOY;
 	MN(4 downto 0) <= signal_joy;
 
-	state_name : process (NextState, PB, CLK) is
+	state_name : process (NextState, PB, CLK, baud_clk, joy_clk) is
 	begin
 		if PB='1' then
 			NextState <= Start;
@@ -100,9 +100,10 @@ begin
 				L <= "00000001";
 				STATE <= "00";	-- send Start
 				STATUS <= "00001"; -- send first lerg sudd
+				level <= 0;
 				MN(7 downto 5) <= "001";
 
-				if JOY(4)='0' then
+				if JOY(4)='0' and joy_clk='1' then
 					MN(7 downto 5) <= "101";
 					NextState <= selLevel;
 				else
@@ -114,7 +115,7 @@ begin
 				STATE <= "00";	-- send select level
 				STATUS <= "00010"; -- send level
 
-				--if joy_clk='1' then
+				if joy_clk='1' then
 					if JOY(1)='0' then			--easy
 						level <= 1;
 					elsif JOY(0)='0' then		--normal
@@ -122,7 +123,7 @@ begin
 					elsif JOY(3)='0' then		--hard
 						level <= 3;
 					end if;
-				--end if;
+				end if;
 
 				if level=1 or level=2 or level=3 then
 					seedxxx <= seed;
@@ -147,66 +148,91 @@ begin
 				
 			when loopGame =>
 				L <= "00001000";
+	
+				if baud_clk = '1' then
+					STATUS <= "01100";
+					POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+					POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+				end if;
+
 				if (joy_clk='1') then
 					if (JOY(0)='0') then		--UP
 						if ( y > 0 ) then
 							--MN <= "00000001";
 							-- send  deleteframe x,y
-							STATUS <= "01100";
-							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							if baud_clk = '1' then
+								STATUS <= "01101";
+								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							end if;
 							y <= y -1;
 							-- send drawFrame(x,y)
-							STATUS <= "01101";
-							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							if baud_clk = '1' then
+								STATUS <= "01100";
+								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							end if;
 						end if;
 					elsif (JOY(1)='0')then	--Left
-						if ( x > 0 ) then 
+						if ( x > 0 ) then
 							--MN <= "00000010";
 							-- send  deleteframe x,y
-							STATUS <= "01100";
-							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							if baud_clk = '1' then
+								STATUS <= "01101";
+								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							end if;
 							x <= x -1;
 							-- send drawFrame(x,y)
-							STATUS <= "01101";
-							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							if baud_clk = '1' then
+								STATUS <= "01100";
+								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							end if;
 						end if;
 					elsif (JOY(2)='0')then	--Down
 						if ( y < 5 ) then 
 							--MN <= "00000100";
 							-- send  deleteframe x,y
-							STATUS <= "01100";
-							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							if baud_clk = '1' then
+								STATUS <= "01101";
+								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							end if;
 							y <= y +1;
 							-- send drawFrame(x,y)
-							STATUS <= "01101";
-							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							if baud_clk = '1' then
+								STATUS <= "01100";
+								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							end if;
 						end if;
 					elsif (JOY(3)='0')then	--Right
 						if ( x < 5 ) then 
 							--MN <= "00001000";
 							-- send  deleteframe x,y
-							STATUS <= "01100";
-							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							if baud_clk = '1' then
+								STATUS <= "01101";
+								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							end if;
 							x <= x +1;
 							-- send drawFrame(x,y)
-							STATUS <= "01101";
-							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							if baud_clk = '1' then
+								STATUS <= "01100";
+								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							end if;
 						end if;
 					elsif (JOY(4)='0')then	--Center
 						if (table(level, 5*x + y) = 0) then				-- space
 							--MN <= "10000000";
-							STATUS <= "00001";	-- send space
-							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							NextState <= Lose;
+							if baud_clk = '1' then
+								STATUS <= "00001";	-- send space
+								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							end if;
+							NextState <= loopGame;
 						elsif (	table(level, 5*x + y) = 1 or
 									table(level, 5*x + y) = 2 or
 									table(level, 5*x + y) = 3 or
@@ -216,14 +242,20 @@ begin
 									table(level, 5*x + y) = 7 or
 									table(level, 5*x + y) = 8 ) then		-- number
 							--MN <= "01000000";
-							STATUS <= std_logic_vector(to_unsigned(table(level, 5*x + y) +2, STATUS'length));	-- send space
-							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							if baud_clk = '1' then
+								STATUS <= std_logic_vector(to_unsigned(table(level, 5*x + y) +2, STATUS'length));	-- send space
+								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							end if;
+							NextState <= loopGame;
 						elsif (table(level, 5*x + y) = 15) then		-- bomb booomm
 							--MN <= "00100000";
-							STATUS <= "10000";	-- send space
-							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							if baud_clk = '1' then
+								STATUS <= "10000";	-- send space
+								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							end if;
+							NextState <= Lose;
 						end if;
 					end if;
 				end if;
@@ -266,7 +298,6 @@ begin
 				if sec_count = clk_cycle then
 					s0 := s0 + 1;
 				end if;
-				
 
 				if s0 = "1010" then
 					s0 := "0000";
@@ -329,10 +360,10 @@ begin
 		end if;
 	end process clkdiv_send;
 	
-	clkdiv_joy : process (CLK) is
+	clkdiv_joy : process (CLK, JOY) is
 		variable count : integer range 0 to joy_cycle := 0;
 	begin
-		if (CLK'event and CLK='1') then
+		if CLK'event and CLK='1' and ( JOY(0)='0' or JOY(0)='1' or JOY(0)='1' or JOY(0)='1' or JOY(0)='1' ) then
 			count := count + 1;
 			if (count = joy_cycle) then
 				joy_clk <= '1';
@@ -342,23 +373,25 @@ begin
 		end if;
 	end process clkdiv_joy;
 	
-	send_parallel : process (baud_clk) is
-	begin
-		if (baud_clk'event and baud_clk='1' and is_send='1') then
-			--STATUS <= "1111";
-			--POSX <= "111";
-			--POSY <= "111";
-		end if;
-	end process send_parallel;
-	
 	seed_name : process (CLK) is
-		variable count : countpattern_type := 0;
+		variable count : integer range 0 to seed_num := 0;
 	begin
 		if (CLK'event and CLK='1') then
 			count := count + 1;
 		end if;
 		seed <= count;
 	end process seed_name;
+	
+	--send_parallel : process (baud_clk) is
+	--begin
+	--	if (baud_clk'event and baud_clk='1' and is_send='1') then
+			--STATUS <= "1111";
+			--POSX <= "111";
+			--POSY <= "111";
+	--	end if;
+	--end process send_parallel;
+	
+
 	
 	SEG(6 downto 0) <=	"1101111" when BCD = "1001" else -- 9
 								"1111111" when BCD = "1000" else -- 8
