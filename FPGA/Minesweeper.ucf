@@ -1,5 +1,7 @@
 NET "CLK" LOC = P123;
 
+NET "PB" LOC = P45;
+
 NET "SEG[6]" LOC = P27;
 NET "SEG[5]" LOC = P29;
 NET "SEG[4]" LOC = P32;

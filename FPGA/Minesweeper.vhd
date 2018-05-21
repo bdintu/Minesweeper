@@ -7,13 +7,14 @@ entity Minesweeper is
 	generic (
 		pattern_num	: integer := 30-1;
 		clk_cycle	: integer := 20000000;
-		seg_cycle	: integer := 20000000/20;
+		seg_cycle	: integer := 20000000/200;
 		baud_cycle	: integer := 20000000/100;
 		joy_cycle	: integer := 20000000/4
 	);
 
 	port (
 		CLK		: in std_logic;
+		PB			: in std_logic;
 		JOY		: in std_logic_vector (4 downto 0);
 
 		L			: out std_logic_vector (7 downto 0);
@@ -73,24 +74,39 @@ architecture Behavioral of Minesweeper is
 
 	signal level : integer range 0 to 3 := 0;
 	signal use_table : integer range 0 to pattern_num := 0;
-	
+
 	signal x, y : integer range 0 to 5 := 2;
 	signal bcd	: std_logic_vector (3 downto 0) := "0000";
 
 	signal is_send, clk_clk, baud_clk, joy_clk : std_logic := '0';
 
+	signal signal_joy : std_logic_vector (4 downto 0);
+
 begin
 
-	state_name : process (NextState) is
+	signal_joy <= JOY;
+	MN(4 downto 0) <= signal_joy;
+
+	state_name : process (NextState, PB, CLK) is
 	begin
+		if PB='1' then
+			NextState <= Start;
+
+		elsif CLK'event and CLK='1' then
+
 		case NextState is
 
 			when Start =>
 				L <= "00000001";
 				STATE <= "00";	-- send Start
 				STATUS <= "00001"; -- send first lerg sudd
-				if JOY(4)='1' and joy_clk='1' then
+				MN(7 downto 5) <= "001";
+
+				if JOY(4)='0' then
+					MN(7 downto 5) <= "101";
 					NextState <= selLevel;
+				else
+					NextState <= Start;
 				end if;
 
 			when selLevel =>
@@ -98,19 +114,21 @@ begin
 				STATE <= "00";	-- send select level
 				STATUS <= "00010"; -- send level
 
-				if joy_clk='1' then
-					if (JOY(1)='1') then			--easy
+				--if joy_clk='1' then
+					if JOY(1)='0' then			--easy
 						level <= 1;
-					elsif (JOY(0)='1') then		--normal
+					elsif JOY(0)='0' then		--normal
 						level <= 2;
-					elsif (JOY(3)='1') then		--hard
+					elsif JOY(3)='0' then		--hard
 						level <= 3;
 					end if;
-				end if;
+				--end if;
 
-				if (level=1 or level=2 or level=3) then
+				if level=1 or level=2 or level=3 then
 					seedxxx <= seed;
 					NextState <= randTable;
+				else
+					NextState <= selLevel;
 				end if;
 
 			when randTable =>
@@ -130,9 +148,9 @@ begin
 			when loopGame =>
 				L <= "00001000";
 				if (joy_clk='1') then
-					if (JOY(0)='1') then		--UP
+					if (JOY(0)='0') then		--UP
 						if ( y > 0 ) then
-							MN <= "00000001";
+							--MN <= "00000001";
 							-- send  deleteframe x,y
 							STATUS <= "01100";
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -143,9 +161,9 @@ begin
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 						end if;
-					elsif (JOY(1)='1')then	--Left
+					elsif (JOY(1)='0')then	--Left
 						if ( x > 0 ) then 
-							MN <= "00000010";
+							--MN <= "00000010";
 							-- send  deleteframe x,y
 							STATUS <= "01100";
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -156,9 +174,9 @@ begin
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 						end if;
-					elsif (JOY(2)='1')then	--Down
+					elsif (JOY(2)='0')then	--Down
 						if ( y < 5 ) then 
-							MN <= "00000100";
+							--MN <= "00000100";
 							-- send  deleteframe x,y
 							STATUS <= "01100";
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -169,9 +187,9 @@ begin
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 						end if;
-					elsif (JOY(3)='1')then	--Right
+					elsif (JOY(3)='0')then	--Right
 						if ( x < 5 ) then 
-							MN <= "00001000";
+							--MN <= "00001000";
 							-- send  deleteframe x,y
 							STATUS <= "01100";
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -182,9 +200,9 @@ begin
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 						end if;
-					elsif (JOY(4)='1')then	--Center
+					elsif (JOY(4)='0')then	--Center
 						if (table(level, 5*x + y) = 0) then				-- space
-							MN <= "10000000";
+							--MN <= "10000000";
 							STATUS <= "00001";	-- send space
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
@@ -197,12 +215,12 @@ begin
 									table(level, 5*x + y) = 6 or
 									table(level, 5*x + y) = 7 or
 									table(level, 5*x + y) = 8 ) then		-- number
-							MN <= "01000000";
+							--MN <= "01000000";
 							STATUS <= std_logic_vector(to_unsigned(table(level, 5*x + y) +2, STATUS'length));	-- send space
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 						elsif (table(level, 5*x + y) = 15) then		-- bomb booomm
-							MN <= "00100000";
+							--MN <= "00100000";
 							STATUS <= "10000";	-- send space
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
@@ -210,23 +228,26 @@ begin
 					end if;
 				end if;
 
-				if (NextState=Win) then
-					NextState <= Win;
-				else
-					NextState <= Lose;
-				end if;
-				
-			when Win =>
-				L <= "00010000";
-				NextState <= Start;
+				--if (NextState=Win) then
+		--			NextState <= Win;
+		--		else
+		--			NextState <= Lose;
+		--		end if;
+		--		
+		--	when Win =>
+		--		L <= "00010000";
+		--		NextState <= Start;
 
-			when Lose =>
-				L <= "00100000";
-				NextState <= Start;
+		--	when Lose =>
+		--		L <= "00100000";
+		--		NextState <= Start;
 
 			when others =>
-				NextState <= Start;
+				MN(7 downto 5) <= "000";
+				--NextState <= Start;
 		end case;
+		
+		end if;
 	end process state_name;
 	
 	timmer : process(CLK) is
@@ -245,6 +266,7 @@ begin
 				if sec_count = clk_cycle then
 					s0 := s0 + 1;
 				end if;
+				
 
 				if s0 = "1010" then
 					s0 := "0000";
