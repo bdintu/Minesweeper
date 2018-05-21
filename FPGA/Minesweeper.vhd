@@ -7,10 +7,10 @@ entity Minesweeper is
 	generic (
 		pattern_num	: integer := 30-1;
 		seed_num		: integer := 9;
-		clk_cycle	: integer := 20000000;
-		seg_cycle	: integer := 20000000/200;
-		baud_cycle	: integer := 20000000/10;
-		joy_cycle	: integer := 20000000/8
+		clk_cycle	: integer := 17000000;
+		seg_cycle	: integer := 17000000/100;
+		baud_cycle	: integer := 17000000/10;
+		joy_cycle	: integer := 17000000/5
 	);
 
 	port (
@@ -32,7 +32,7 @@ entity Minesweeper is
 end Minesweeper;
 
 architecture Behavioral of Minesweeper is
-	type StateType is ( Start, selLevel, randTable, loopGame, Win, Lose);
+	type StateType is ( Start, selLevel, randTable, DrawFrame, loopGame, Win, Lose );
 	signal NextState : StateType;
 
 	type RamType is array(0 to pattern_num, 0 to 35) of integer range 0 to 15;
@@ -75,10 +75,9 @@ architecture Behavioral of Minesweeper is
 	signal level : integer range 0 to 3 := 0;
 	signal use_table : integer range 0 to pattern_num := 0;
 
-	signal x, y : integer range 0 to 5 := 2;
 	signal bcd	: std_logic_vector (3 downto 0) := "0000";
 
-	signal is_send, clk_clk, baud_clk, joy_clk : std_logic := '0';
+	signal is_send, clk_1ms, baud_clk, joy_clk : std_logic := '0';
 
 	signal signal_joy : std_logic_vector (4 downto 0);
 
@@ -88,6 +87,7 @@ begin
 	MN(4 downto 0) <= signal_joy;
 
 	state_name : process (NextState, PB, CLK, baud_clk, joy_clk) is
+		variable x, y : integer range 0 to 5 := 0;
 	begin
 		if PB='1' then
 			NextState <= Start;
@@ -145,10 +145,18 @@ begin
 				STATE <= "01";	-- send draw table parrw parw
 				STATUS <= "00000"; -- send table space manyyyy
 				NextState <= loopGame;
-				
+
+			when drawFrame =>
+				if baud_clk = '1' then
+					STATUS <= "01100";
+					POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+					POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+				end if;
+				NextState <= loopGame;
+
 			when loopGame =>
 				L <= "00001000";
-	
+
 				if baud_clk = '1' then
 					STATUS <= "01100";
 					POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -165,13 +173,9 @@ begin
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 							end if;
-							y <= y -1;
+							y := y -1;
 							-- send drawFrame(x,y)
-							if baud_clk = '1' then
-								STATUS <= "01100";
-								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							end if;
+							NextState <= DrawFrame;
 						end if;
 					elsif (JOY(1)='0')then	--Left
 						if ( x > 0 ) then
@@ -182,13 +186,9 @@ begin
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 							end if;
-							x <= x -1;
+							x := x -1;
 							-- send drawFrame(x,y)
-							if baud_clk = '1' then
-								STATUS <= "01100";
-								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							end if;
+							NextState <= DrawFrame;
 						end if;
 					elsif (JOY(2)='0')then	--Down
 						if ( y < 5 ) then 
@@ -199,13 +199,9 @@ begin
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 							end if;
-							y <= y +1;
+							y := y +1;
 							-- send drawFrame(x,y)
-							if baud_clk = '1' then
-								STATUS <= "01100";
-								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							end if;
+							NextState <= DrawFrame;
 						end if;
 					elsif (JOY(3)='0')then	--Right
 						if ( x < 5 ) then 
@@ -216,13 +212,9 @@ begin
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 							end if;
-							x <= x +1;
+							x := x +1;
 							-- send drawFrame(x,y)
-							if baud_clk = '1' then
-								STATUS <= "01100";
-								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							end if;
+							NextState <= DrawFrame;
 						end if;
 					elsif (JOY(4)='0')then	--Center
 						if (table(level, 5*x + y) = 0) then				-- space
@@ -281,23 +273,19 @@ begin
 		
 		end if;
 	end process state_name;
-	
-	timmer : process(CLK) is
-		variable sec_count	: integer range 0 to clk_cycle := 0;
+
+	timmer : process(clk_1ms) is
 		variable digit_count	: integer range 0 to seg_cycle := 0;
-	
+
 		variable s0		: std_logic_vector (3 downto 0) := "0000";
 		variable s1		: std_logic_vector (3 downto 0) := "0000";
 		variable m0		: std_logic_vector (3 downto 0) := "0000";
 		variable m1		: std_logic_vector (3 downto 0) := "0000";
 	begin
 
-			if CLK'event and CLK = '1' then
+			if clk_1ms'event and clk_1ms = '1' then
 
-				sec_count := sec_count + 1;
-				if sec_count = clk_cycle then
-					s0 := s0 + 1;
-				end if;
+				s0 := s0 + 1;
 
 				if s0 = "1010" then
 					s0 := "0000";
@@ -311,6 +299,9 @@ begin
 				elsif m1 = "0110" then
 					m1 := "0000";
 				end if;
+			end if;
+	
+			if CLK'event and CLK = '1' then
 
 				digit_count := digit_count + 1;				
 				if digit_count < seg_cycle/4 then
@@ -340,9 +331,9 @@ begin
 		if (CLK'event and CLK='1') then
 			count := count + 1;
 			if (count = clk_cycle) then
-				clk_clk <= '1';
+				clk_1ms <= '1';
 			else
-				clk_clk <= '0';
+				clk_1ms <= '0';
 			end if;
 		end if;
 	end process clkdiv_clk;
@@ -359,7 +350,7 @@ begin
 			end if;
 		end if;
 	end process clkdiv_send;
-	
+
 	clkdiv_joy : process (CLK, JOY) is
 		variable count : integer range 0 to joy_cycle := 0;
 	begin
@@ -372,7 +363,7 @@ begin
 			end if;
 		end if;
 	end process clkdiv_joy;
-	
+
 	seed_name : process (CLK) is
 		variable count : integer range 0 to seed_num := 0;
 	begin
@@ -381,7 +372,7 @@ begin
 		end if;
 		seed <= count;
 	end process seed_name;
-	
+
 	--send_parallel : process (baud_clk) is
 	--begin
 	--	if (baud_clk'event and baud_clk='1' and is_send='1') then
@@ -390,9 +381,7 @@ begin
 			--POSY <= "111";
 	--	end if;
 	--end process send_parallel;
-	
 
-	
 	SEG(6 downto 0) <=	"1101111" when BCD = "1001" else -- 9
 								"1111111" when BCD = "1000" else -- 8
 								"0000111" when BCD = "0111" else -- 7
