@@ -230,21 +230,23 @@ begin
 
 					elsif JOY(4) = '0' then	--Center
 						if table(use_table, 6*x + y) = 0 then				-- space
-								STATUS <= "00001";	-- send space
-								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							STATUS <= "00001";	-- send space
+							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							table(use_table, 6*x + y) <= 11;
 							NextState <= loopGame;
-						elsif		table(use_table, 6*x + y) = 1 or
-									table(use_table, 6*x + y) = 2 or
-									table(use_table, 6*x + y) = 3 or
-									table(use_table, 6*x + y) = 4 or
-									table(use_table, 6*x + y) = 5 or
-									table(use_table, 6*x + y) = 6 or
-									table(use_table, 6*x + y) = 7 or
-									table(use_table, 6*x + y) = 8 then		-- number
-								STATUS <= std_logic_vector(to_unsigned(table(use_table, 6*x + y) +2, STATUS'length));	-- send space
-								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+						elsif	table(use_table, 6*x + y) = 1 or
+								table(use_table, 6*x + y) = 2 or
+								table(use_table, 6*x + y) = 3 or
+								table(use_table, 6*x + y) = 4 or
+								table(use_table, 6*x + y) = 5 or
+								table(use_table, 6*x + y) = 6 or
+								table(use_table, 6*x + y) = 7 or
+								table(use_table, 6*x + y) = 8 then		-- number
+							STATUS <= std_logic_vector(to_unsigned(table(use_table, 6*x + y) +2, STATUS'length));	-- send space
+							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							table(use_table, 6*x + y) <= 11;
 							NextState <= loopGame;
 						elsif table(use_table, 6*x + y) = 10 then		-- bomb booomm
 								STATUS <= "10000";	-- send space
@@ -254,7 +256,7 @@ begin
 						end if;
 
 					elsif WAKE = '1' then
-						if table(use_table, 6*x + y) < 16 and flag_lim > 0 then		-- place flag
+						if table(use_table, 6*x + y) < 16 and flag_lim > 0 and not(table(use_table, 6*x + y) = 11) then		-- place flag
 							if table(use_table, 6*x + y) = 10 then
 								flag_bomb := flag_bomb -1;
 							end if;						
@@ -297,7 +299,7 @@ begin
 				NextState <= loopGame;
 
 			when Win =>
-				L <= "01000000";
+				L <= "10000000";
 				STATE <= "10";
 				STATUS <= "00000";
 				BUZ <= '1';
