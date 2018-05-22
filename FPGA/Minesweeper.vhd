@@ -36,7 +36,7 @@ entity Minesweeper is
 end Minesweeper;
 
 architecture Behavioral of Minesweeper is
-	type StateType is ( Start, selLevel, randTable, sendFlaglim, loopGame, DrawFrame, Win, Lose);
+	type StateType is ( Start, selLevel, randTable, loopGame, DrawFrame, Win, Lose);
 	signal NextState : StateType;
 
 	type RamType is array(0 to pattern_num, 0 to 35) of integer range 0 to 31;
@@ -121,10 +121,16 @@ begin
 				if joy_clk='1' then
 					if JOY(1)='0' then			--easy
 						level <= 1;
+						STATE <= "00";				-- send select level
+						STATUS <= "10000"; 		-- send level
 					elsif JOY(0)='0' then		--normal
 						level <= 2;
+						STATE <= "00";				-- send select level
+						STATUS <= "01000"; 		-- send level
 					elsif JOY(3)='0' then		--hard
 						level <= 3;
+						STATE <= "00";				-- send select level
+						STATUS <= "00100"; 		-- send level
 					end if;
 				end if;
 
@@ -153,31 +159,7 @@ begin
 
 				STATE <= "01";	-- send draw table parrw parw
 				STATUS <= "00000"; -- send table space manyyyy
-				NextState <= sendFlaglim;
-
-			when sendFlaglim =>
-				L <= "00001000";
-				if baud_clk = '1' then
-					if level = 1 then
-						STATE <= "01";	-- send draw table parrw parw
-						STATUS <= "11110"; -- send num flag
-						POSY <= "000";
-						POSX <= std_logic_vector(to_unsigned(flag_lim, POSX'length));
-						NextState <= loopGame;
-					elsif level = 2 then
-						STATE <= "01";	-- send draw table parrw parw
-						STATUS <= "11110"; -- send num flag
-						POSY <= std_logic_vector(to_unsigned(1, POSY'length));
-						POSX <= std_logic_vector(to_unsigned(2, POSX'length));
-						NextState <= loopGame;
-					elsif level = 3 then
-						STATE <= "01";	-- send draw table parrw parw
-						STATUS <= "11110"; -- send num flag
-						POSY <= std_logic_vector(to_unsigned(1, POSY'length));
-						POSX <= std_logic_vector(to_unsigned(7, POSX'length));
-						NextState <= loopGame;
-					end if;
-				end if;
+				NextState <= loopGame;
 
 			when loopGame =>
 				L <= "00010000";
@@ -275,7 +257,7 @@ begin
 							STATUS <= "01110";	-- send place flag
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							NextState <= sendFlaglim;
+							NextState <= loopGame;
 						elsif table(use_table, 6*x + y) >= 16 then	-- rm flag
 							MN <= "00001111";
 							table(use_table, 6*x + y) <= table(use_table, 6*x + y) - 16;
@@ -286,7 +268,7 @@ begin
 							STATUS <= "00000";	-- send rm flag
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							NextState <= sendFlaglim;
+							NextState <= loopGame;
 						end if;
 
 					end if;
