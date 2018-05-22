@@ -36,7 +36,7 @@ entity Minesweeper is
 end Minesweeper;
 
 architecture Behavioral of Minesweeper is
-	type StateType is ( Start, selLevel, randTable, loopGame, DrawFrame, Win, Lose);
+	type StateType is ( Start, selLevel, sendLevel, randTable, loopGame, DrawFrame, Win, Lose);
 	signal NextState : StateType;
 
 	type RamType is array(0 to pattern_num, 0 to 35) of integer range 0 to 31;
@@ -86,7 +86,6 @@ architecture Behavioral of Minesweeper is
 begin
 
 	state_name : process (NextState, WAKE, PB, JOY, CLK, baud_clk, joy_clk) is
-		variable tmp : integer range 0 to 31;
 		variable flag_lim, flag_bomb : integer := 0;
 	begin
 		if PB = '1' then
@@ -119,30 +118,41 @@ begin
 				STATUS <= "00010"; -- send level
 
 				if joy_clk='1' then
-					if JOY(1)='0' then			--easy
+					if JOY(1)='0' then			-- easy
 						level <= 1;
-						STATE <= "00";				-- send select level
-						STATUS <= "10000"; 		-- send level
-					elsif JOY(0)='0' then		--normal
+					elsif JOY(0)='0' then		-- normal
 						level <= 2;
-						STATE <= "00";				-- send select level
-						STATUS <= "01000"; 		-- send level
-					elsif JOY(3)='0' then		--hard
+					elsif JOY(3)='0' then		-- hard
 						level <= 3;
-						STATE <= "00";				-- send select level
-						STATUS <= "00100"; 		-- send level
 					end if;
 				end if;
 
 				if level=1 or level=2 or level=3 then
 					seedxxx <= seed;
-					NextState <= randTable;
+					NextState <= sendLevel;
 				else
 					NextState <= selLevel;
 				end if;
+				
+			when sendLevel =>
+				L <= "00000100";
+				STATE <= "00";		-- send select level
+				
+				if baud_clk = '1' then
+					if level = 1 then				-- easy
+						STATUS <= "00100"; 		-- send level
+						NextState <= randTable;
+					elsif level = 2 then			-- normal
+						STATUS <= "01000"; 		-- send level
+						NextState <= randTable;
+					elsif level = 3 then			-- hard
+						STATUS <= "10000"; 		-- send level
+						NextState <= randTable;
+					end if;
+				end if;
 
 			when randTable =>
-				L <= "00000100";
+				L <= "00001000";
 				if level = 1 then
 					use_table <= seedxxx;
 					flag_lim := 7;
@@ -157,9 +167,11 @@ begin
 					flag_bomb := 15;
 				end if;
 
-				STATE <= "01";	-- send draw table parrw parw
-				STATUS <= "00000"; -- send table space manyyyy
-				NextState <= loopGame;
+				if baud_clk = '1' then
+					STATE <= "01";			-- send draw table parrw parw
+					STATUS <= "00000"; 	-- send table space manyyyy
+					NextState <= loopGame;
+				end if;
 
 			when loopGame =>
 				L <= "00010000";
@@ -217,7 +229,6 @@ begin
 						end if;
 
 					elsif JOY(4) = '0' then	--Center
-						tmp := table(0, 3);
 						if table(use_table, 6*x + y) = 0 then				-- space
 								STATUS <= "00001";	-- send space
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -243,9 +254,7 @@ begin
 						end if;
 
 					elsif WAKE = '1' then
-						tmp := table(0, 6);
 						if table(use_table, 6*x + y) < 16 and flag_lim > 0 then		-- place flag
-							MN <= "11110000";
 							if table(use_table, 6*x + y) = 10 then
 								flag_bomb := flag_bomb -1;
 								if flag_bomb = 0 then
@@ -259,7 +268,6 @@ begin
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 							NextState <= loopGame;
 						elsif table(use_table, 6*x + y) >= 16 then	-- rm flag
-							MN <= "00001111";
 							table(use_table, 6*x + y) <= table(use_table, 6*x + y) - 16;
 							if table(use_table, 6*x + y) = 10 then
 								flag_bomb := flag_bomb +1;
@@ -284,13 +292,28 @@ begin
 				NextState <= loopGame;
 
 			when Win =>
-				L <= "00100000";
-				NextState <= Win;
+				L <= "01000000";
+				STATE <= "10";
+				STATUS <= "00000";
+				BUZ <= '1';
+
+				if JOY(4)='0' and joy_clk='1' then
+					NextState <= Start;
+				else
+					NextState <= Win;
+				end if;
 
 			when Lose =>
-				L <= "01000000";
+				L <= "10000000";
+				STATE <= "10";
+				STATUS <= "00001";
 				BUZ <= '1';
-				NextState <= Lose;
+
+				if JOY(4)='0' and joy_clk='1' then
+					NextState <= Start;
+				else
+					NextState <= Lose;
+				end if;
 
 			when others =>
 				L <= "11111111";
