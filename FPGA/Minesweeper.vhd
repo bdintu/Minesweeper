@@ -39,11 +39,8 @@ architecture Behavioral of Minesweeper is
 	type StateType is ( Start, selLevel, randTable, sendFlaglim, loopGame, DrawFrame, Win, Lose);
 	signal NextState : StateType;
 
-	type Ram2DType is array(0 to 35) of integer range 0 to 31;
-	signal table : Ram2DType;
-
-	type Ram3DType is array(0 to pattern_num) of Ram2DType;
-	signal table_pattern : Ram3DType := (
+	type RamType is array(0 to pattern_num, 0 to 35) of integer range 0 to 31;
+	signal table, table_pattern : RamType := (
 		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
 		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
 		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
