@@ -115,6 +115,8 @@ void Draw8(int Xpos,int Ypos);
 void Draw9(int Xpos,int Ypos);
 void DrawFlag(int Xpos,int Ypos);
 void Menu();
+void Win();
+void Lose();
 //void DrawX(int Xpos,int Ypos,uint16_t color);
 //void DrawShip(int Xpos,int Ypos,int numShip);
 /* USER CODE END 0 */
@@ -209,7 +211,17 @@ LCD_SetTextColor(Yellow);
       LCD_SetTextColor(Red);
 			Menu();
 			while(HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_10)==1)
-			{}
+			{		char ch[15] = "PRESS JOY STICK";
+		      for (int j=0;j<15;j++)
+			    {LCD_SetBackColor(White);
+          LCD_SetTextColor(Black);
+			    LCD_DisplayChar(214,16*(3+j)+8,ch[14-j]);}
+	      	for (int j=0;j<15;j++)
+			    {LCD_SetBackColor(White);
+           LCD_SetTextColor(Red);
+			     LCD_DisplayChar(214,16*(3+j)+8,ch[14-j]);}
+					
+				 }
 
 		}
 		if(ToDo==2)
@@ -219,32 +231,72 @@ LCD_SetTextColor(Yellow);
 		for (int j=0;j<13;j++)
 		{LCD_SetBackColor(White);
       LCD_SetTextColor(Red);
-			LCD_DisplayChar(Line3,16*(4+j),ch[12-j]);}
+			LCD_DisplayChar(Line1,16*(4+j),ch[12-j]);}
+		
+			LCD_SetBackColor(Yellow);
+			LCD_SetTextColor(Yellow);
+			LCD_DrawFullRect(2*40, 8*40, 320, 40);
 		char ch2[13] = " Easy - Left ";
 		for (int j=0;j<13;j++)
 			{LCD_SetBackColor(Yellow);
       LCD_SetTextColor(Black);
-			LCD_DisplayChar(Line5,16*(4+j),ch2[12-j]);}
+			LCD_DisplayChar(90,16*(8+j),ch2[12-j]);}
+			DrawBomb(2,3);
+			Draw7(2,1);
+			
+			LCD_SetBackColor(Green2);
+			LCD_SetTextColor(Green2);
+			LCD_DrawFullRect(3*40, 8*40, 320, 40);
     char ch3[13] = " Medium - Up ";
 		for (int j=0;j<13;j++)
 			{LCD_SetBackColor(Green2);
       LCD_SetTextColor(Black);
-			LCD_DisplayChar(Line6,16*(4+j),ch3[12-j]);}
-    char ch4[13] = " Hard - Down ";
+			LCD_DisplayChar(130,16*(8+j),ch3[12-j]);}
+			DrawBomb(3,3);
+			Draw0(3,1);
+			Draw1(3,2);
+			
+			LCD_SetBackColor(Red);
+			LCD_SetTextColor(Red);
+			LCD_DrawFullRect(4*40, 8*40, 320, 40);
+    char ch4[13] = " Hard -Right ";
 		for (int j=0;j<13;j++)
 			{LCD_SetBackColor(Red);
       LCD_SetTextColor(White);
-			LCD_DisplayChar(Line7,16*(4+j),ch4[12-j]);}
+			LCD_DisplayChar(170,16*(8+j),ch4[12-j]);}
+		DrawBomb(4,3);
+			Draw5(4,1);
+			Draw1(4,2);
+		int level=0;
 			
+		while(1)
+			{		
+				
+		if (HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_12)==1&&HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_13)==0&&HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_14)==0)	
+				{ level =1; 
+				break;}
+		else if (HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_12)==0&&HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_13)==1&&HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_14)==0)	
+				{ level =2; 
+				break;}
+		else if (HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_12)==0&&HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_13)==0&&HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_14)==1)	
+				{level =3;
+				break;}
+		if(HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_10)==1&&HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_9)==0)
+			{	break;}
+				
+			}
+
 		while(HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_9)==0&&HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_10)==0)
-			{}
+			{			}
+		
 		if (HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_9)==1&&HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_8)==0)
-		{LCD_Clear(Blue2);
+		{
+		 LCD_Clear(Blue2);
 		 for (int i = 0; i<6; i++)
 		 {
 			for (int j=1; j<7; j++)
 			{
-				//if((i+j)%2 ==0){
+
 
 				LCD_SetBackColor(Grey);
 				LCD_SetTextColor(Grey2);
@@ -257,12 +309,29 @@ LCD_SetTextColor(Yellow);
 				LCD_DrawFullRect(i*40+6, j*40-6, 28, 28);
 			}
 		 }
+     DrawBomb(1,7);
+		 LCD_SetBackColor(White);
+		 LCD_SetTextColor(Blue3);
+		 LCD_DrawFullRect(2*40, 8*40, 80, 40);
+		 
+		 if (level==1)
+		 {Draw7(2,7);}
+		 else if (level==2)
+		 {Draw0(2,7);
+		  Draw1(2,8);}
+		 else if (level==3)
+		 {Draw5(2,7);
+		  Draw1(2,8);}
 	  }
+		
+		
+		
 	 }
 	}
 	
 	if((HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_8) == GPIO_PIN_RESET)&&(HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_9) == GPIO_PIN_SET))
 	{
+
 
 		int x=0,y=0,ToDo=0;
 
@@ -304,22 +373,18 @@ LCD_SetTextColor(Yellow);
 		//										play
 		if(ToDo==0)
 		{
-			/*
-		//DrawTable();			
-		for (int i = 0; i<6; i++)
-		{
-			for (int j=1; j<7; j++)
-			{
-				//if((i+j)%2 ==0){
+			
+		//Space normal		
 				LCD_SetBackColor(Grey);
 				LCD_SetTextColor(Grey2);
-				LCD_DrawFullRect(i*40, j*40, 40, 40);
+				LCD_DrawFullRect(x*40, y*40, 40, 40);
 				LCD_SetBackColor(Grey2);
 			  LCD_SetTextColor(Grey2);
-		  	LCD_DrawFullFrame(i*40+1,j*40-1,38,38);
-			}
-		}
-			*/
+		  	LCD_DrawFullFrame(x*40+1,y*40-1,38,38);
+				LCD_SetBackColor(Grey);
+				LCD_SetTextColor(Grey2);
+				LCD_DrawFullRect(x*40+6, y*40-6, 28, 28);	
+
 	 }
 		else if(ToDo==1)
 		{
@@ -419,7 +484,7 @@ LCD_SetTextColor(Yellow);
 		else if(ToDo==14)
 		{
 			// Flag
-			DrawFlag(x*40, y*40);
+			DrawFlag(x, y);
 
 		}
 		else if(ToDo==15)
@@ -438,11 +503,79 @@ LCD_SetTextColor(Yellow);
 			LCD_DrawFullRect(x*40, y*40, 40, 40);
 			DrawBomb(x,y);
 		}
+		else if(ToDo==30)
+		{ /*
+			//num flag
+			
+				LCD_SetBackColor(White);
+				LCD_SetTextColor(Blue3);
+				LCD_DrawFullRect(3*40, 8*40, 80, 40);
+			
+			int num=0;
+			//print num
+			if(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_8)==GPIO_PIN_SET)
+			num+=1;
+		  if(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_9)==GPIO_PIN_SET)
+			num+=2;
+		  if(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_10)==GPIO_PIN_SET)
+			num+=4;
+			if(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_11)==GPIO_PIN_SET)
+			num+=8;
+			
+			if (num/10==1)
+			{
+			  Draw1(3,8);
+			}
+			else 
+			{ Draw0(3,8);}
+			num%=10;
+			if (num==0)
+			{ Draw0(3,7);}
+			else if (num==1)
+			{ Draw1(3,7);}
+			else if (num==2)
+			{ Draw2(3,7);}
+			else if (num==3)
+			{ Draw3(3,7);}
+			else if (num==4)
+			{ Draw4(3,7);}
+			else if (num==5)
+			{ Draw5(3,7);}
+			else if (num==6)
+			{ Draw6(3,7);}
+			else if (num==7)
+			{ Draw7(3,7);}
+			else if (num==8)
+			{ Draw8(3,7);}
+			else if (num==9)
+			{ Draw9(3,7);}
+
+			*/
+		}
+
 
 	}
 	if((HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_8) == GPIO_PIN_SET)&&(HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_9) == GPIO_PIN_RESET))
 	{
-		LCD_DisplayStringLine(Line1," End Game baby");
+		if(HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_10) == 1)
+		{
+			LCD_SetBackColor(Red);
+				LCD_SetTextColor(White);
+			LCD_DisplayStringLine(Line1,"        You Lose    ");
+		  Lose();
+			while((HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_8) == GPIO_PIN_SET)&&(HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_9) == GPIO_PIN_RESET))
+		{}
+		}
+		else if(HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_10) == 0)
+		{
+			LCD_SetBackColor(Green);
+				LCD_SetTextColor(Black);
+			LCD_DisplayStringLine(Line1,"        You Win     ");
+		Win();
+		}
+		while((HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_8) == GPIO_PIN_SET)&&(HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_9) == GPIO_PIN_RESET))
+		{}
+		
 	}    
   /*char str[20];
 	sprintf(str,"\r%02d",input);
@@ -455,21 +588,7 @@ LCD_SetTextColor(Yellow);
 	
 	
 
-	/*	
-  char str[20];
-	uint32_t b;
-	b = (count/60)%60;
-	sprintf(str,"\r%02u:",b);
-	HAL_UART_Transmit(&huart2, (uint8_t*) str, strlen(str),100);
-	
-  char strr[20]	;
-	b = (count)%60;	 
-	sprintf(strr,"%02u ",b);
-	HAL_UART_Transmit(&huart2, (uint8_t*) strr,strlen(strr),100);
-		
 
-  LCD_DisplayStringLine(Line4,(char*) strcat(str,strr));
-	*/
 
 
   }
@@ -657,13 +776,13 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11|GPIO_PIN_13|GPIO_PIN_15, GPIO_PIN_RESET);
@@ -684,11 +803,25 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PE5 PE6 PE7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+  /*Configure GPIO pins : PE5 PE6 PE7 PE15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PA0 PA8 PA9 PA10 
+                           PA11 PA12 PA13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10 
+                          |GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB11 PB13 PB15 */
   GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_13|GPIO_PIN_15;
@@ -709,14 +842,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PA8 PA9 PA10 PA11 
-                           PA12 PA13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11 
-                          |GPIO_PIN_12|GPIO_PIN_13;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PD7 */
   GPIO_InitStruct.Pin = GPIO_PIN_7;
@@ -781,10 +906,10 @@ void Draw0(int x,int y)
 			int yb=(y*40)-5;
 	    LCD_SetBackColor(Pink);
 			LCD_SetTextColor(Pink);
-			LCD_DrawFullRect(xb+1, yb-7, 18, 4);
-			LCD_DrawFullRect(xb+26, yb-7, 18, 4);
-			LCD_DrawFullRect(xb+1, yb-7, 4, 24);
-			LCD_DrawFullRect(xb+1, yb-21, 4, 24);
+			LCD_DrawFullRect(xb+4, yb-7, 16, 4);
+			LCD_DrawFullRect(xb+4, yb-7, 4, 22);
+			LCD_DrawFullRect(xb+4, yb-19, 4, 22);
+	    LCD_DrawFullRect(xb+22, yb-7, 16, 4);	
 }
 void Draw1(int x,int y)
 {
@@ -914,7 +1039,7 @@ void DrawFlag(int x,int y)
 }
 
 void Menu()
-{ int x=30,y=310-20;
+{ int x=30,y=330-20;
 	//M
   LCD_DrawFullRect(x+10, y-10, 10, 50);
 	int i = 0,j=0;
@@ -942,10 +1067,19 @@ void Menu()
 	LCD_DrawFullRect(x+50, y-100, 30, 10);
 	//N
 	LCD_DrawFullRect(x+10, y-150, 10, 50);
-	LCD_DrawFullRect(x+10, y-160, 10, 20);
-	LCD_DrawFullRect(x+20, y-170, 10, 30);
-	LCD_DrawFullRect(x+40, y-180, 10, 20);
-	LCD_DrawFullRect(x+10, y-190, 10, 50);
+	 i = 0,j=0;
+	while (i!=40)
+	{
+		LCD_SetBackColor(Red);
+	  LCD_SetTextColor(Red);
+	  LCD_DrawFullRect(x+10+i, y-160-j, 10,10);
+		i++;
+		j++;
+	}
+	//LCD_DrawFullRect(x+10, y-160, 10, 20);
+	//LCD_DrawFullRect(x+20, y-170, 10, 30);
+	//LCD_DrawFullRect(x+40, y-180, 10, 20);
+	LCD_DrawFullRect(x+10, y-200, 10, 50);
 	//E
 	LCD_DrawFullRect(x+10, y-220, 40, 10);
 	LCD_DrawFullRect(x+10, y-220, 10, 50);
@@ -997,7 +1131,26 @@ void Menu()
 	LCD_DrawFullRect(x+70, y-290, 10, 40);
 	LCD_DrawFullRect(x+100, y-270, 30, 10);
 	LCD_DrawFullRect(x+110, y-280, 10, 10);
-	LCD_DrawFullRect(x+120, y-290, 10, 10);
+	for (int k=0; k<=10;k++)
+	LCD_DrawFullRect(x+110+k, y-280-k, 10, 10);
+	
+
+	int xb=(1*40)+5+10;
+	int yb=(1*40);	
+	
+	//Flag
+  LCD_SetBackColor(Black);
+	LCD_SetTextColor(Black);
+	LCD_DrawFullRect(xb+28, yb-6, 20, 2);
+  LCD_DrawFullRect(xb+26, yb-11, 14, 2);
+	LCD_DrawFullRect(xb+20, yb-19, 2, 5);
+	LCD_SetBackColor(Red);
+	LCD_SetTextColor(Red);
+	LCD_DrawFullRect(xb+3, yb-16, 6, 17);
+	LCD_DrawFullRect(xb+5, yb-13, 3, 13);
+	LCD_DrawFullRect(xb+8, yb-8, 5, 8);
+	LCD_DrawFullRect(xb+10, yb-5, 3, 4);
+
 	DrawBomb(0,8);
 	DrawBomb(0,7);
 	DrawBomb(0,6);
@@ -1006,14 +1159,125 @@ void Menu()
 	DrawBomb(0,3);
 	DrawBomb(0,2);
 	DrawBomb(0,1);
-	DrawBomb(4,8);
-	DrawBomb(4,7);
-	DrawBomb(4,6);
-	DrawBomb(4,5);
-	DrawBomb(4,4);
-	DrawBomb(4,3);
-	DrawBomb(4,2);
 	DrawBomb(4,1);
+	DrawBomb(4,2);
+	DrawBomb(4,3);
+	DrawBomb(4,4);
+	DrawBomb(4,5);
+	DrawBomb(4,6);
+	DrawBomb(4,7);
+	DrawBomb(4,8);
+	
+		char ch[15] = "PRESS JOY STICK";
+		for (int j=0;j<15;j++)
+			{LCD_SetBackColor(White);
+      LCD_SetTextColor(Black);
+			LCD_DisplayChar(214,16*(3+j)+8,ch[14-j]);}
+
+	DrawFlag(5,1);
+	DrawFlag(5,8);
+			
+}
+
+void Win()
+{
+	int x =20;
+	int y =320;
+	    LCD_SetBackColor(Yellow);
+			LCD_SetTextColor(Yellow);
+			LCD_DrawFullCircle(x+115,y-160,50);
+	    LCD_DrawFullCircle(x+80,y-160,40);
+		  LCD_SetBackColor(Red);//mouth
+			LCD_SetTextColor(Red);
+	 		LCD_DrawFullCircle(x+110,y-160,30);
+	    LCD_SetBackColor(Yellow);
+			LCD_SetTextColor(Yellow);
+	    LCD_DrawFullCircle(x+100,y-160,30);
+	    LCD_SetBackColor(Yellow);
+			LCD_SetTextColor(Yellow);
+	    LCD_DrawFullRect(x+100, y-120,80,20);
+	    //eyes
+		    LCD_SetBackColor(Black);
+			LCD_SetTextColor(Black);
+	    //LCD_DrawFullCircle(x+90,y-150,5);
+	    //LCD_DrawFullCircle(x+90,y-170,5);
+	    LCD_DrawFullRect(x+80, y-125,30,20);
+			LCD_DrawFullRect(x+80, y-165,30,20);
+			LCD_DrawFullRect(x+85, y-140,30,5);
+	for(int k=0;k<15;k++)
+	{
+	    LCD_DrawFullCircle(x+82+k,y-125+k,2);
+	    LCD_DrawFullCircle(x+82+k,y-195-k,2);		
+  }		
+	//nose
+			  LCD_SetBackColor(Orange);
+			LCD_SetTextColor(Orange);
+	for(int k=0;k<18;k++)
+	{
+	    LCD_DrawFullCircle(x+117,y-150-k,1);	
+  }	
+	
+	  //hair
+			  LCD_SetBackColor(Black);
+			LCD_SetTextColor(Black);
+	    LCD_DrawFullCircle(x+50,y-160,10);
+	for(int k=0;k<15;k++)
+	{
+
+	    LCD_DrawFullCircle(x+50+k*2,y-145+k*2,15-k);
+	    LCD_DrawFullCircle(x+50+k*2,y-175-k*2,15-k);		
+  }		
+	//while(1)
+	//{}
+}
+
+void Lose()
+{
+	int x =20;
+	int y =320;
+	    LCD_SetBackColor(Yellow);
+			LCD_SetTextColor(Yellow);
+			LCD_DrawFullCircle(x+115,y-160,50);
+	    LCD_DrawFullCircle(x+80,y-160,40);
+		  LCD_SetBackColor(Red);//mouth
+			LCD_SetTextColor(Red);
+	 		LCD_DrawFullCircle(x+140,y-160,30);
+	    LCD_SetBackColor(Yellow);
+			LCD_SetTextColor(Yellow);
+	    LCD_DrawFullCircle(x+150,y-160,30);
+	    LCD_SetBackColor(Yellow);
+			LCD_SetTextColor(Yellow);
+	   // LCD_DrawFullRect(x+160, y-120,80,20);
+	    //eyes
+		  LCD_SetBackColor(Black);
+			LCD_SetTextColor(Black);
+	    LCD_DrawFullCircle(x+90,y-140,2);
+	    LCD_DrawFullCircle(x+90,y-180,2);
+		for(int k=0;k<10;k++)
+	{
+	    LCD_DrawFullCircle(x+90+k,y-140+k,2);
+		  LCD_DrawFullCircle(x+90-k,y-140-k,2);
+		  LCD_DrawFullCircle(x+90+k,y-140-k,2);
+		  LCD_DrawFullCircle(x+90-k,y-140+k,2);
+      LCD_DrawFullCircle(x+90+k,y-180+k,2);		
+		  LCD_DrawFullCircle(x+90-k,y-180-k,2);
+		  LCD_DrawFullCircle(x+90+k,y-180-k,2);
+		  LCD_DrawFullCircle(x+90-k,y-180+k,2);
+  }	
+	
+	
+	  //hair
+			  LCD_SetBackColor(Black);
+			LCD_SetTextColor(Black);
+	    LCD_DrawFullCircle(x+50,y-160,10);
+	for(int k=0;k<15;k++)
+	{
+
+	    LCD_DrawFullCircle(x+50+k*2,y-145+k*2,15-k);
+	    LCD_DrawFullCircle(x+50+k*2,y-175-k*2,15-k);		
+  }		
+	//while(1)
+	//{}
 }
 
 
