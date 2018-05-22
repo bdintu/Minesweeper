@@ -11,6 +11,7 @@ NET "JOY[0]" LOC = P121;	//K5-1 UP
 
 NET "BUZ" LOC = P83;
 
+NET "SEG[7]" LOC = P26;
 NET "SEG[6]" LOC = P27;
 NET "SEG[5]" LOC = P29;
 NET "SEG[4]" LOC = P32;

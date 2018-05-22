@@ -257,21 +257,26 @@ begin
 						if table(use_table, 6*x + y) < 16 and flag_lim > 0 then		-- place flag
 							if table(use_table, 6*x + y) = 10 then
 								flag_bomb := flag_bomb -1;
-								if flag_bomb = 0 then
-									NextState <= Win;
-								end if;
-							end if;
+							end if;						
 							table(use_table, 6*x + y) <= table(use_table, 6*x + y) + 16;
-							flag_lim := flag_lim -1;				
+
+							flag_lim := flag_lim -1;
 							STATUS <= "01110";	-- send place flag
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
-							NextState <= loopGame;
+
+							if flag_bomb = 0 then
+								NextState <= Win;
+							else
+								NextState <= loopGame;								
+							end if;	
+
 						elsif table(use_table, 6*x + y) >= 16 then	-- rm flag
 							table(use_table, 6*x + y) <= table(use_table, 6*x + y) - 16;
 							if table(use_table, 6*x + y) = 10 then
 								flag_bomb := flag_bomb +1;
 							end if;
+
 							flag_lim := flag_lim +1;
 							STATUS <= "00000";	-- send rm flag
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
