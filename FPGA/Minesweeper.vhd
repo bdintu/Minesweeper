@@ -5,9 +5,9 @@ use ieee.numeric_std.all;
 
 entity Minesweeper is
 	generic (
-		pattern_num	: integer := 30-1;
-		seed_num		: integer := 9;
-		clk_cycle	: integer := 25000000;
+		pattern_num	: integer := 5;
+		seed_num		: integer := 1;
+		clk_cycle	: integer := 18000000;
 		seg_cycle	: integer := 25000000/240;
 		baud_cycle	: integer := 25000000/10;
 		joy_cycle	: integer := 25000000/5
@@ -18,7 +18,7 @@ entity Minesweeper is
 		PB			: in std_logic;
 		WAKE		: in std_logic;
 		JOY		: in std_logic_vector (4 downto 0);
-		
+
 		BUZ		: out std_logic;
 
 		L			: out std_logic_vector (7 downto 0);
@@ -43,49 +43,25 @@ architecture Behavioral of Minesweeper is
 	signal table, table_pattern : RamType := (
 		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
 		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 )
+		(0,0,2,10,2,0,  1,1,2,10,2,0,    10,2,2,2,2,1   ,2,3,10,1,2,10 ,1,10,2,1,2,10 ,1,1,1,0,1,1),
+		(0,1,1,2,1,1,   0,2,10,3,10,1,   0,3,10,5,2,2   ,0,3,10,4,10,1 ,1,3,10,3,1,1  ,10,2,1,1,0,0),
+		(0,1,10,3,2,0,  0,1,3,10,10,1,   1,1,4,10,4,1   ,1,10,3,10,2,0 ,2,2,3,1,1,0   ,1,10,1,0,0,0),
+		(10,1,1,1,1,0,  1,2,2,10,2,1 ,1,2,10,4,10,1 ,1,10,2,3,10,2 ,1,1,2,2,2,1 ,0,0,1,10,1,0)
 	);
 
 	signal seed : integer range 0 to seed_num := 0;
-	signal seedxxx : integer range 0 to seed_num := 0;
 
 	signal level : integer range 0 to 3 := 0;
 	signal use_table : integer range 0 to pattern_num := 0;
 
 	signal baud_clk, joy_clk : std_logic := '0';
+	signal timmer_reset : std_logic := '0';
 	signal x, y : integer range 0 to 5 := 0;
 	signal bcd	: std_logic_vector (3 downto 0) := "0000";
 
 begin
 
-	state_name : process (NextState, WAKE, PB, JOY, CLK, baud_clk, joy_clk) is
+	state_name : process (NextState, WAKE, PB, JOY, CLK, baud_clk, joy_clk, seed, timmer_reset) is
 		variable flag_lim, flag_bomb : integer := 0;
 	begin
 		if PB = '1' then
@@ -97,7 +73,7 @@ begin
 
 			when Start =>
 				L <= "00000001";
-				MN <= "00000000";
+				--MN <= "00000000";
 				BUZ <= '0';
 				STATE <= "00";	-- send Start
 				STATUS <= "00001"; -- send first lerg sudd
@@ -128,7 +104,6 @@ begin
 				end if;
 
 				if level=1 or level=2 or level=3 then
-					seedxxx <= seed;
 					NextState <= sendLevel;
 				else
 					NextState <= selLevel;
@@ -137,7 +112,7 @@ begin
 			when sendLevel =>
 				L <= "00000100";
 				STATE <= "00";		-- send select level
-				
+
 				if baud_clk = '1' then
 					if level = 1 then				-- easy
 						STATUS <= "00100"; 		-- send level
@@ -154,20 +129,24 @@ begin
 			when randTable =>
 				L <= "00001000";
 				if level = 1 then
-					use_table <= seedxxx;
+					use_table <= seed;
 					flag_lim := 7;
 					flag_bomb := 7;
 				elsif level = 2 then
-					use_table <= seedxxx +10;
+					use_table <= seed +2;
 					flag_lim := 10;
 					flag_bomb := 10;
 				elsif level = 3 then
-					use_table <= seedxxx +20;
+					use_table <= seed +4;
 					flag_lim := 15;
 					flag_bomb := 15;
 				end if;
 
+				--MN(7 downto 6) <= std_logic_vector(to_unsigned(seed, MN(7 downto 6)'length));
+				--MN(2 downto 0) <= std_logic_vector(to_unsigned(use_table, MN(2 downto 0)'length));
+
 				if baud_clk = '1' then
+					timmer_reset <= '1';
 					STATE <= "01";			-- send draw table parrw parw
 					STATUS <= "00000"; 	-- send table space manyyyy
 					NextState <= loopGame;
@@ -249,7 +228,7 @@ begin
 							table(use_table, 6*x + y) <= 11;
 							NextState <= loopGame;
 						elsif table(use_table, 6*x + y) = 10 then		-- bomb booomm
-								STATUS <= "10000";	-- send space
+								STATUS <= "10000";	-- send bomb
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 							NextState <= Lose;
@@ -299,9 +278,12 @@ begin
 				NextState <= loopGame;
 
 			when Win =>
-				L <= "10000000";
-				STATE <= "10";
-				STATUS <= "00000";
+				L <= "01000000";
+				if baud_clk = '1' then
+					STATE <= "10";
+					STATUS <= "00000";
+				end if;
+
 				BUZ <= '1';
 
 				if JOY(4)='0' and joy_clk='1' then
@@ -312,8 +294,11 @@ begin
 
 			when Lose =>
 				L <= "10000000";
-				STATE <= "10";
-				STATUS <= "00001";
+				if baud_clk = '1' then
+					STATE <= "10";
+					STATUS <= "00001";
+				end if;
+
 				BUZ <= '1';
 
 				if JOY(4)='0' and joy_clk='1' then
@@ -330,7 +315,7 @@ begin
 		end if;
 	end process state_name;
 
-	timmer : process(CLK) is
+	timmer : process(CLK, timmer_reset) is
 		variable sec_count	: integer range 0 to clk_cycle := 0;
 		variable digit_count	: integer range 0 to seg_cycle := 0;
 
@@ -341,11 +326,21 @@ begin
 	begin
 
 			if CLK'event and CLK = '1' then
-
-				sec_count := sec_count + 1;
-				if sec_count = clk_cycle then
-					s0 := s0 + 1;
+				if timmer_reset = '1' then
+					s0 := "0000";
+					s1 := "0000";
+					m0 := "0000";
+					m1 := "0000";
+				else
+					sec_count := sec_count + 1;
+					if sec_count = clk_cycle then
+						s0 := s0 + 1;
+					end if;
 				end if;
+
+				MN(7) <= timmer_reset;
+				MN(6 downto 4) <= "000";
+				MN(3 downto 0) <= s0;
 
 				if s0 = "1010" then
 					s0 := "0000";
@@ -382,7 +377,7 @@ begin
 			end if;
 	end process timmer;
 
-	clkdiv_send : process (CLK) is
+	clkdiv_baud : process (CLK) is
 		variable count : integer range 0 to baud_cycle := 0;
 	begin
 		if CLK'event and CLK='1' then
@@ -393,7 +388,7 @@ begin
 				baud_clk <= '0';
 			end if;
 		end if;
-	end process clkdiv_send;
+	end process clkdiv_baud;
 
 	clkdiv_joy : process (CLK, JOY) is
 		variable count : integer range 0 to joy_cycle := 0;
