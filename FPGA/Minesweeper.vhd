@@ -15,8 +15,8 @@ entity Minesweeper is
 
 	port (
 		CLK		: in std_logic;
-		PB			: in std_logic;
 		WAKE		: in std_logic;
+		TAMP		: in std_logic;
 		JOY		: in std_logic_vector (4 downto 0);
 		
 		BUZ		: out std_logic;
@@ -39,8 +39,11 @@ architecture Behavioral of Minesweeper is
 	type StateType is ( Start, selLevel, randTable, sendFlaglim, loopGame, DrawFrame, Win, Lose);
 	signal NextState : StateType;
 
-	type RamType is array(0 to pattern_num, 0 to 35) of integer range 0 to 31;
-	signal table : RamType := (
+	type Ram2DType is array(0 to 35) of integer range 0 to 31;
+	signal table : Ram2DType;
+
+	type Ram3DType is array(0 to pattern_num) of Ram2DType;
+	signal table_pattern : Ram3DType := (
 		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
 		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
 		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
@@ -77,7 +80,6 @@ architecture Behavioral of Minesweeper is
 	signal seedxxx : integer range 0 to seed_num := 0;
 
 	signal level : integer range 0 to 3 := 0;
-	signal use_table : integer range 0 to pattern_num := 0;
 
 	signal baud_clk, joy_clk : std_logic := '0';
 	signal x, y : integer range 0 to 5 := 0;
@@ -89,11 +91,11 @@ begin
 
 	signal_joy <= JOY;
 
-	state_name : process (NextState, WAKE, PB, JOY, CLK, baud_clk, joy_clk) is
+	state_name : process (NextState, WAKE, TAMP, JOY, CLK, baud_clk, joy_clk) is
 		variable tmp : integer range 0 to 31;
 		variable flag_lim, flag_bomb : integer := 0;
 	begin
-		if PB = '1' then
+		if TAMP = '0' then
 			NextState <= Start;
 
 		elsif CLK'event and CLK='1' then
@@ -140,16 +142,17 @@ begin
 
 			when randTable =>
 				L <= "00000100";
+				tmp := table(9);
 				if level = 1 then
-					use_table <= seedxxx;
+					table <= table_pattern(seedxxx);
 					flag_lim := 7;
 					flag_bomb := 7;
 				elsif level = 2 then
-					use_table <= seedxxx +10;
+					table <= table_pattern(seedxxx +10);
 					flag_lim := 10;
 					flag_bomb := 10;
 				elsif level = 3 then
-					use_table <= seedxxx +20;
+					table <= table_pattern(seedxxx +20);
 					flag_lim := 15;
 					flag_bomb := 15;
 				end if;
@@ -238,26 +241,26 @@ begin
 						end if;
 
 					elsif JOY(4) = '0' then	--Center
-						tmp := table(0, 3);
+						tmp := table(3);
 						--MN(6 downto 0) <= std_logic_vector(to_unsigned( tmp, MN(6 downto 0)'length));
-						if table(use_table, 6*x + y) = 0 then				-- space
+						if table(6*x + y) = 0 then				-- space
 								STATUS <= "00001";	-- send space
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 							NextState <= loopGame;
-						elsif		table(use_table, 6*x + y) = 1 or
-									table(use_table, 6*x + y) = 2 or
-									table(use_table, 6*x + y) = 3 or
-									table(use_table, 6*x + y) = 4 or
-									table(use_table, 6*x + y) = 5 or
-									table(use_table, 6*x + y) = 6 or
-									table(use_table, 6*x + y) = 7 or
-									table(use_table, 6*x + y) = 8 then		-- number
-								STATUS <= std_logic_vector(to_unsigned(table(use_table, 6*x + y) +2, STATUS'length));	-- send space
+						elsif		table(6*x + y) = 1 or
+									table(6*x + y) = 2 or
+									table(6*x + y) = 3 or
+									table(6*x + y) = 4 or
+									table(6*x + y) = 5 or
+									table(6*x + y) = 6 or
+									table(6*x + y) = 7 or
+									table(6*x + y) = 8 then		-- number
+								STATUS <= std_logic_vector(to_unsigned(table(6*x + y) +2, STATUS'length));	-- send space
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 							NextState <= loopGame;
-						elsif table(use_table, 6*x + y) = 10 then		-- bomb booomm
+						elsif table(6*x + y) = 10 then		-- bomb booomm
 								STATUS <= "10000";	-- send space
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
@@ -265,26 +268,26 @@ begin
 						end if;
 
 					elsif WAKE = '1' then
-						tmp := table(0, 6);
+						tmp := table(6);
 						--MN(6 downto 0) <= std_logic_vector(to_unsigned( tmp, MN(6 downto 0)'length));
-						if table(use_table, 6*x + y) < 16 and flag_lim > 0 then		-- place flag
+						if table(6*x + y) < 16 and flag_lim > 0 then		-- place flag
 							MN <= "11110000";
-							if table(use_table, 6*x + y) = 10 then
+							if table(6*x + y) = 10 then
 								flag_bomb := flag_bomb -1;
 								if flag_bomb = 0 then
 									NextState <= Win;
 								end if;
 							end if;
-							table(use_table, 6*x + y) <= table(use_table, 6*x + y) + 16;
+							table(6*x + y) <= table(6*x + y) + 16;
 							flag_lim := flag_lim -1;				
 							STATUS <= "01110";	-- send place flag
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 							NextState <= sendFlaglim;
-						elsif table(use_table, 6*x + y) >= 16 then	-- rm flag
+						elsif table(6*x + y) >= 16 then	-- rm flag
 							MN <= "00001111";
-							table(use_table, 6*x + y) <= table(use_table, 6*x + y) - 16;
-							if table(use_table, 6*x + y) = 10 then
+							table(6*x + y) <= table(6*x + y) - 16;
+							if table(6*x + y) = 10 then
 								flag_bomb := flag_bomb +1;
 							end if;
 							flag_lim := flag_lim +1;
