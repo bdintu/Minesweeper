@@ -5,8 +5,7 @@ use ieee.numeric_std.all;
 
 entity Minesweeper is
 	generic (
-		pattern_num	: integer := 11;
-		seed_num		: integer := 3;
+		pattern_num	: integer := 15;
 		clk_cycle	: integer := 17000000;
 		seg_cycle	: integer := 20000000/240;
 		baud_cycle	: integer := 20000000/10;
@@ -41,33 +40,38 @@ architecture Behavioral of Minesweeper is
 
 	type RamType is array(0 to pattern_num, 0 to 35) of integer range 0 to 31;
 	signal table, table_pattern : RamType := (
-		(0,1,2,3,10,1,  0,1,10,10,3,2,   1,2,3,2,2,10,  1,10,2,1,2,1,  2,2,2,10,1,0,  10,1,1,1,1,0 ),
-		(2,2,2,10,2,1,  10,10,3,2,10,1,  3,10,2,2,2,1,  1,1,2,10,1,0,  0,1,2,2,1,0,   0,1,10,1,0,0 ),
-		(0,0,2,10,2,0,  1,1,2,10,2,0,    10,2,2,2,2,1   ,2,3,10,1,2,10 ,1,10,2,1,2,10 ,1,1,1,0,1,1),
-		(0,1,1,2,1,1,   0,2,10,3,10,1,   0,3,10,5,2,2   ,0,3,10,4,10,1 ,1,3,10,3,1,1  ,10,2,1,1,0,0),
-		(0,1,10,3,2,0,  0,1,3,10,10,1,   1,1,4,10,4,1   ,1,10,3,10,2,0 ,2,2,3,1,1,0   ,1,10,1,0,0,0),
-		(10,1,1,1,1,0,  1,2,2,10,2,1,    1,2,10,4,10,1 ,1,10,2,3,10,2  ,1,1,2,2,2,1   ,0,0,1,10,1,0),
-		(2,10,2,1,1,0,  10,2,2,10,1,0   ,1,2,2,2,2,1   ,0,1,10,2,3,10  ,1,2,3,10,5,10  ,1,10,3,10,4,10),
-		(10,10,10,1,0,0  ,2,3,2,2, 1,1,0    ,1,1,2,10,1,1  ,2,10,3,2,2,1  ,10,3,4,10,3,1,  1,2,10,10,10),
-		(10,3,3,2,2,1,  3,10,10,10,3,10,  3,10,7,10,4,1,   2,10,4,10,3,1,   1,1,2,1,2,10,   0,0,0,0,1,1),
-		(10,2,2,1,1,0,  3,10,4,10,1,0,   3,10,10,3,2,1     ,2,10,4,4,10,2,1,2,3,10,10,2,0,1,10,3,2,1),
-		(1,2,10,2,1,0,  3,10,6,10,3,1,   10,10,10,10,10,1   ,2,5,10,5,2,1,0,2,10,2,0,0,0,1,1,1,0,0),
-		(1,2,10,2,1,0,  3,10,6,10,3,1,   10,10,10,10,10,1,   2,5,10,5,2,1,0,2,10,2,0,0,0,1,1,1,0,0)
+		(0,1,2,3,10,1,0,1,10,10,3,2,1,2,3,2,2,10,1,10,2,1,2,1,2,2,2,10,1,0,10,1,1,1,1,0),	--easy
+		(2,2,2,10,2,1,10,10,3,2,10,1,3,10,3,2,2,1,1,1,2,10,1,0,0,1,2,2,1,0,0,1,10,1,0,0),
+		(0,0,2,10,2,0,1,1,2,10,2,0,10,2,2,2,2,1,2,3,10,1,2,10,1,10,2,1,2,10,1,1,1,0,1,1),
+		(0,1,1,2,1,1,0,2,10,3,10,1,0,3,10,5,2,2,0,3,10,4,10,1,1,3,10,3,1,1,10,2,1,1,0,0),
+		(0,1,10,3,2,0,0,1,3,10,10,1,1,1,4,10,4,1,1,10,3,10,2,0,2,2,3,1,1,0,1,10,1,0,0,0),
+		(10,1,1,1,1,0,1,2,2,10,2,1,1,2,10,4,10,1,1,10,2,3,10,2,1,1,2,2,2,1,0,0,1,10,1,0),
+		
+		(2,10,2,1,1,0,10,2,2,10,1,0,1,2,2,2,2,1,0,1,10,2,3,10,1,2,3,10,5,10,1,10,3,10,4,10),	--normal
+		(10,10,10,1,0,0,2,3,2,2,1,1,0,1,1,2,10,1,1,2,10,3,2,2,1,10,3,4,10,3,1,1,2,10,10,10),
+		(10,3,3,2,2,1,3,10,10,10,3,10,3,10,7,10,4,1,2,10,4,10,3,1,1,1,2,1,2,10,0,0,0,0,1,1),
+		(10,2,2,1,1,0,3,10,4,10,1,0,3,10,10,3,2,1,2,10,4,4,10,2,1,2,3,10,10,2,0,1,10,3,2,1),
+		(1,2,10,2,1,0,3,10,6,10,3,1,10,10,10,10,10,1,2,5,10,5,2,1,0,2,10,2,0,0,0,1,1,1,0,0),
+		(1,2,10,2,1,0,3,10,6,10,3,1,10,10,10,10,10,1,2,5,10,5,2,1,0,2,10,2,0,0,0,1,1,1,0,0),
+
+		(10,2,2,3,10,2,4,10,4,10,10,1,10,10,10,4,3,2,3,10,5,5,10,2,3,4,10,10,10,2,10,10,3,3,2,1),	--hard
+		(10,10,10,10,2,1,4,10,6,4,10,1,3,10,5,10,4,2,2,10,4,10,10,1,3,4,4,4,3,2,10,10,10,2,10,1),
+		(1,3,10,3,2,1,10,5,10,10,5,10,3,10,10,10,10,3,10,5,10,10,5,10,1,3,10,3,2,10,0,1,1,1,1,1),
+		(10,10,10,10,10,10,10,6,4,4,5,10,10,4,10,1,3,10,10,4,1,1,3,10,10,2,0,0,2,10,1,1,0,0,1,1)
 	);
-
-	signal seed : integer range 0 to seed_num := 0;
-
-	signal level : integer range 0 to 3 := 0;
-	signal use_table : integer range 0 to pattern_num := 0;
-
+	
 	signal baud_clk, joy_clk : std_logic := '0';
-	signal timmer_mod : integer range 0 to 2 := 1;
-	signal x, y : integer range 0 to 5 := 0;
-	signal bcd	: std_logic_vector (3 downto 0) := "0000";
+
+	signal clk_count	: integer range 1 to clk_cycle := 1;
+	signal use_table	: integer range 0 to pattern_num := 0;
+	signal timmer_mod	: integer range 0 to 2 := 1;
+	signal level		: integer range 0 to 3 := 0;
+	signal x, y 		: integer range 0 to 5 := 0;
+	signal bcd			: integer range 0 to 9 := 0;
 
 begin
 
-	state_name : process (NextState, WAKE, PB, JOY, CLK, baud_clk, joy_clk, seed, timmer_mod) is
+	state_name : process (NextState, WAKE, PB, JOY, CLK, baud_clk, joy_clk, clk_count, timmer_mod) is
 		variable flag_lim, flag_bomb : integer := 0;
 	begin
 		if PB = '1' then
@@ -79,13 +83,12 @@ begin
 
 			when Start =>
 				L <= "00000001";
-				--MN <= "00000000";
+				MN <= "00000000";
 				BUZ <= '0';
 				STATE <= "00";	-- send Start
 				STATUS <= "00001"; -- send first lerg sudd
 				timmer_mod <= 1;
 				table <= table_pattern;
-				level <= 0;
 				x <= 0;
 				y <= 0;
 
@@ -132,22 +135,20 @@ begin
 			when randTable =>
 				L <= "00001000";
 				if level = 1 then
-					use_table <= seed mod seed_num;
+					use_table <= clk_count mod 6;
 					flag_lim := 7;
 					flag_bomb := 7;
 				elsif level = 2 then
-					use_table <= (seed mod seed_num) +4;
+					use_table <= (clk_count mod 6) +6;
 					flag_lim := 10;
 					flag_bomb := 10;
 				elsif level = 3 then
-					use_table <= (seed mod seed_num) +8;
+					use_table <= (clk_count mod 4) +12;
 					flag_lim := 15;
 					flag_bomb := 15;
 				end if;
 
-				MN(5 downto 3) <= "000";
-				MN(7 downto 6) <= std_logic_vector(to_unsigned(seed, MN(7 downto 6)'length));
-				MN(2 downto 0) <= std_logic_vector(to_unsigned(use_table, MN(2 downto 0)'length));
+				MN(3 downto 0) <= std_logic_vector(to_unsigned(use_table, MN(3 downto 0)'length));
 
 				if baud_clk = '1' then
 					timmer_mod <= 0;
@@ -168,6 +169,7 @@ begin
 				if joy_clk = '1' then
 					if JOY(0) = '0' then		--UP
 						if y > 0 then
+							MN(7 downto 4) <= "0001";
 							-- send  deleteframe x,y
 								STATUS <= "01101";
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -179,6 +181,7 @@ begin
 						end if;
 					elsif JOY(1) = '0' then	--Left
 						if x > 0 then
+							MN(7 downto 4) <= "0001";
 							-- send  deleteframe x,y
 								STATUS <= "01101";
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -190,6 +193,7 @@ begin
 						end if;
 					elsif JOY(2) = '0' then	--Down
 						if y < 5 then 
+							MN(7 downto 4) <= "0001";
 							-- send  deleteframe x,y
 								STATUS <= "01101";
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -200,7 +204,8 @@ begin
 							NextState <= DrawFrame;
 						end if;
 					elsif JOY(3) = '0' then	--Right
-						if x < 5  then 
+						if x < 5  then
+							MN(7 downto 4) <= "0001";
 							-- send  deleteframe x,y
 								STATUS <= "01101";
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
@@ -213,6 +218,7 @@ begin
 
 					elsif JOY(4) = '0' then	--Center
 						if table(use_table, 6*x + y) = 0 then				-- space
+							MN(7 downto 4) <= "0010";
 							STATUS <= "00001";	-- send space
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
@@ -226,20 +232,22 @@ begin
 								table(use_table, 6*x + y) = 6 or
 								table(use_table, 6*x + y) = 7 or
 								table(use_table, 6*x + y) = 8 then		-- number
+							MN(7 downto 4) <= "0100";
 							STATUS <= std_logic_vector(to_unsigned(table(use_table, 6*x + y) +2, STATUS'length));	-- send space
 							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 							table(use_table, 6*x + y) <= 11;
 							NextState <= loopGame;
 						elsif table(use_table, 6*x + y) = 10 then		-- bomb booomm
-								STATUS <= "10000";	-- send bomb
-								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
-								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+							STATUS <= "10000";	-- send bomb
+							POSX <= std_logic_vector(to_unsigned(x, POSX'length));
+							POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 							NextState <= Lose;
 						end if;
 
 					elsif WAKE = '1' then
 						if table(use_table, 6*x + y) < 16 and flag_lim > 0 and not(table(use_table, 6*x + y) = 11) then		-- place flag
+							MN(7 downto 4) <= "1000";
 							if table(use_table, 6*x + y) = 10 then
 								flag_bomb := flag_bomb -1;
 							end if;						
@@ -257,6 +265,7 @@ begin
 							end if;	
 
 						elsif table(use_table, 6*x + y) >= 16 then	-- rm flag
+							MN(7 downto 4) <= "1000";
 							table(use_table, 6*x + y) <= table(use_table, 6*x + y) - 16;
 							if table(use_table, 6*x + y) = 10 then
 								flag_bomb := flag_bomb +1;
@@ -311,49 +320,46 @@ begin
 
 			when others =>
 				L <= "11111111";
-				--NextState <= Start;
 		end case;
 
 		end if;
 	end process state_name;
 
-	timmer : process(CLK, timmer_mod) is
-		variable sec_count	: integer range 1 to clk_cycle := 1;
+	timmer : process(CLK, clk_count, timmer_mod) is
 		variable digit_count	: integer range 0 to seg_cycle := 0;
 
-		variable s0		: std_logic_vector (3 downto 0) := "0000";
-		variable s1		: std_logic_vector (3 downto 0) := "0000";
-		variable m0		: std_logic_vector (3 downto 0) := "0000";
-		variable m1		: std_logic_vector (3 downto 0) := "0000";
+		variable s0 : integer range 0 to 10 := 0;
+		variable s1 : integer range 0 to 6  := 0;
+		variable m0 : integer range 0 to 10 := 0;
+		variable m1 : integer range 0 to 6  := 0;
 	begin
 
 			if CLK'event and CLK = '1' then
 			
 				if timmer_mod = 0 then
-					sec_count := sec_count + 1;
-					seed <= sec_count;
-					if sec_count = clk_cycle then
+					clk_count <= clk_count + 1;
+					if clk_count = clk_cycle then
 						s0 := s0 + 1;
 					end if;
 
 				elsif timmer_mod = 1 then
-					s0 := "0000";
-					s1 := "0000";
-					m0 := "0000";
-					m1 := "0000";
+					s0 := 0;
+					s1 := 0;
+					m0 := 0;
+					m1 := 0;
 				end if;
 
-				if s0 = "1010" then
-					s0 := "0000";
+				if s0 = 10 then
+					s0 := 0;
 					s1 := s1 + 1;
-				elsif s1 = "0110" then
-					s1 := "0000";
+				elsif s1 = 6 then
+					s1 := 0;
 					m0 := m0 + 1;
-				elsif m0 = "1010" then
-					m0 := "0000";
+				elsif m0 = 10 then
+					m0 := 0;
 					m1 := m1 + 1;
-				elsif m1 = "0110" then
-					m1 := "0000";
+				elsif m1 = 6 then
+					m1 := 0;
 				end if;
 
 				digit_count := digit_count + 1;				
@@ -404,15 +410,15 @@ begin
 		end if;
 	end process clkdiv_joy;
 
-	SEG(6 downto 0) <=	"1101111" when BCD = "1001" else -- 9
-								"1111111" when BCD = "1000" else -- 8
-								"0000111" when BCD = "0111" else -- 7
-								"1111101" when BCD = "0110" else -- 6
-								"1101101" when BCD = "0101" else -- 5
-								"1100110" when BCD = "0100" else -- 4
-								"1001111" when BCD = "0011" else -- 3
-								"1011011" when BCD = "0010" else -- 2
-								"0000110" when BCD = "0001" else -- 1
+	SEG(6 downto 0) <=	"1101111" when BCD = 9 else -- 9
+								"1111111" when BCD = 8 else -- 8
+								"0000111" when BCD = 7 else -- 7
+								"1111101" when BCD = 6 else -- 6
+								"1101101" when BCD = 5 else -- 5
+								"1100110" when BCD = 4 else -- 4
+								"1001111" when BCD = 3 else -- 3
+								"1011011" when BCD = 2 else -- 2
+								"0000110" when BCD = 1 else -- 1
 								"0111111";
 
 end Behavioral;
