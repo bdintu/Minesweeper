@@ -64,6 +64,7 @@ architecture Behavioral of Minesweeper is
 
 	signal clk_count	: integer range 1 to clk_cycle := 1;
 	signal use_table	: integer range 0 to pattern_num := 0;
+	signal first_touc	: integer range 0 to 1 := 0;
 	signal timmer_mod	: integer range 0 to 2 := 1;
 	signal level		: integer range 0 to 3 := 0;
 	signal x, y 		: integer range 0 to 5 := 0;
@@ -87,8 +88,10 @@ begin
 				BUZ <= '0';
 				STATE <= "00";	-- send Start
 				STATUS <= "00001"; -- send first lerg sudd
+				first_touc <= 0;
 				timmer_mod <= 1;
 				table <= table_pattern;
+				level <= 0;
 				x <= 0;
 				y <= 0;
 
@@ -101,12 +104,12 @@ begin
 				STATE <= "00";	-- send select level
 				STATUS <= "00010"; -- send level
 
-				if joy_clk='1' then
-					if JOY(1)='0' then			-- easy
+				if joy_clk = '1' then
+					if JOY(1) = '0' then			-- easy
 						level <= 1;
-					elsif JOY(0)='0' then		-- normal
+					elsif JOY(0) = '0' then		-- normal
 						level <= 2;
-					elsif JOY(3)='0' then		-- hard
+					elsif JOY(3) = '0' then		-- hard
 						level <= 3;
 					end if;
 				end if;
@@ -148,10 +151,9 @@ begin
 					flag_bomb := 15;
 				end if;
 
-				MN(3 downto 0) <= std_logic_vector(to_unsigned(use_table, MN(3 downto 0)'length));
+				MN(3 downto 0) <= std_logic_vector(to_unsigned(use_table, 4));
 
 				if baud_clk = '1' then
-					timmer_mod <= 0;
 					STATE <= "01";			-- send draw table parrw parw
 					STATUS <= "00000"; 	-- send table space manyyyy
 					NextState <= loopGame;
@@ -167,6 +169,14 @@ begin
 				end if;
 
 				if joy_clk = '1' then
+
+					if JOY(0)='0' or JOY(1)='0' or JOY(2)='0' or JOY(3)='0' or JOY(4)='0' or WAKE='1' then
+						if first_touc = 0 then
+							timmer_mod <= 0;
+							first_touc <= 1;
+						end if;
+					end if;
+
 					if JOY(0) = '0' then		--UP
 						if y > 0 then
 							MN(7 downto 4) <= "0001";
@@ -400,7 +410,7 @@ begin
 	clkdiv_joy : process (CLK, JOY) is
 		variable count : integer range 0 to joy_cycle := 0;
 	begin
-		if CLK'event and CLK='1' and ( JOY(0)='0' or JOY(0)='1' or JOY(0)='1' or JOY(0)='1' or JOY(0)='1' ) then
+		if CLK'event and CLK='1' and ( JOY(0)='0' or JOY(1)='0' or JOY(2)='0' or JOY(3)='0' or JOY(4)='0' or WAKE='1' ) then
 			count := count + 1;
 			if count = joy_cycle then
 				joy_clk <= '1';
