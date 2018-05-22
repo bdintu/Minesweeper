@@ -5,12 +5,12 @@ use ieee.numeric_std.all;
 
 entity Minesweeper is
 	generic (
-		pattern_num	: integer := 5;
-		seed_num		: integer := 1;
-		clk_cycle	: integer := 18000000;
-		seg_cycle	: integer := 25000000/240;
-		baud_cycle	: integer := 25000000/10;
-		joy_cycle	: integer := 25000000/5
+		pattern_num	: integer := 11;
+		seed_num		: integer := 3;
+		clk_cycle	: integer := 17000000;
+		seg_cycle	: integer := 20000000/240;
+		baud_cycle	: integer := 20000000/10;
+		joy_cycle	: integer := 20000000/4
 	);
 
 	port (
@@ -46,7 +46,13 @@ architecture Behavioral of Minesweeper is
 		(0,0,2,10,2,0,  1,1,2,10,2,0,    10,2,2,2,2,1   ,2,3,10,1,2,10 ,1,10,2,1,2,10 ,1,1,1,0,1,1),
 		(0,1,1,2,1,1,   0,2,10,3,10,1,   0,3,10,5,2,2   ,0,3,10,4,10,1 ,1,3,10,3,1,1  ,10,2,1,1,0,0),
 		(0,1,10,3,2,0,  0,1,3,10,10,1,   1,1,4,10,4,1   ,1,10,3,10,2,0 ,2,2,3,1,1,0   ,1,10,1,0,0,0),
-		(10,1,1,1,1,0,  1,2,2,10,2,1 ,1,2,10,4,10,1 ,1,10,2,3,10,2 ,1,1,2,2,2,1 ,0,0,1,10,1,0)
+		(10,1,1,1,1,0,  1,2,2,10,2,1,    1,2,10,4,10,1 ,1,10,2,3,10,2  ,1,1,2,2,2,1   ,0,0,1,10,1,0),
+		(2,10,2,1,1,0,  10,2,2,10,1,0   ,1,2,2,2,2,1   ,0,1,10,2,3,10  ,1,2,3,10,5,10  ,1,10,3,10,4,10),
+		(10,10,10,1,0,0  ,2,3,2,2, 1,1,0    ,1,1,2,10,1,1  ,2,10,3,2,2,1  ,10,3,4,10,3,1,  1,2,10,10,10),
+		(10,3,3,2,2,1,  3,10,10,10,3,10,  3,10,7,10,4,1,   2,10,4,10,3,1,   1,1,2,1,2,10,   0,0,0,0,1,1),
+		(10,2,2,1,1,0,  3,10,4,10,1,0,   3,10,10,3,2,1     ,2,10,4,4,10,2,1,2,3,10,10,2,0,1,10,3,2,1),
+		(1,2,10,2,1,0,  3,10,6,10,3,1,   10,10,10,10,10,1   ,2,5,10,5,2,1,0,2,10,2,0,0,0,1,1,1,0,0),
+		(1,2,10,2,1,0,  3,10,6,10,3,1,   10,10,10,10,10,1,   2,5,10,5,2,1,0,2,10,2,0,0,0,1,1,1,0,0)
 	);
 
 	signal seed : integer range 0 to seed_num := 0;
@@ -55,13 +61,13 @@ architecture Behavioral of Minesweeper is
 	signal use_table : integer range 0 to pattern_num := 0;
 
 	signal baud_clk, joy_clk : std_logic := '0';
-	signal timmer_reset : std_logic := '0';
+	signal timmer_mod : integer range 0 to 2 := 1;
 	signal x, y : integer range 0 to 5 := 0;
 	signal bcd	: std_logic_vector (3 downto 0) := "0000";
 
 begin
 
-	state_name : process (NextState, WAKE, PB, JOY, CLK, baud_clk, joy_clk, seed, timmer_reset) is
+	state_name : process (NextState, WAKE, PB, JOY, CLK, baud_clk, joy_clk, seed, timmer_mod) is
 		variable flag_lim, flag_bomb : integer := 0;
 	begin
 		if PB = '1' then
@@ -77,6 +83,7 @@ begin
 				BUZ <= '0';
 				STATE <= "00";	-- send Start
 				STATUS <= "00001"; -- send first lerg sudd
+				timmer_mod <= 1;
 				table <= table_pattern;
 				level <= 0;
 				x <= 0;
@@ -84,8 +91,6 @@ begin
 
 				if JOY(4)='0' and joy_clk='1' then
 					NextState <= selLevel;
-				else
-					NextState <= Start;
 				end if;
 
 			when selLevel =>
@@ -105,8 +110,6 @@ begin
 
 				if level=1 or level=2 or level=3 then
 					NextState <= sendLevel;
-				else
-					NextState <= selLevel;
 				end if;
 				
 			when sendLevel =>
@@ -129,24 +132,25 @@ begin
 			when randTable =>
 				L <= "00001000";
 				if level = 1 then
-					use_table <= seed;
+					use_table <= seed mod seed_num;
 					flag_lim := 7;
 					flag_bomb := 7;
 				elsif level = 2 then
-					use_table <= seed +2;
+					use_table <= (seed mod seed_num) +4;
 					flag_lim := 10;
 					flag_bomb := 10;
 				elsif level = 3 then
-					use_table <= seed +4;
+					use_table <= (seed mod seed_num) +8;
 					flag_lim := 15;
 					flag_bomb := 15;
 				end if;
 
-				--MN(7 downto 6) <= std_logic_vector(to_unsigned(seed, MN(7 downto 6)'length));
-				--MN(2 downto 0) <= std_logic_vector(to_unsigned(use_table, MN(2 downto 0)'length));
+				MN(5 downto 3) <= "000";
+				MN(7 downto 6) <= std_logic_vector(to_unsigned(seed, MN(7 downto 6)'length));
+				MN(2 downto 0) <= std_logic_vector(to_unsigned(use_table, MN(2 downto 0)'length));
 
 				if baud_clk = '1' then
-					timmer_reset <= '1';
+					timmer_mod <= 0;
 					STATE <= "01";			-- send draw table parrw parw
 					STATUS <= "00000"; 	-- send table space manyyyy
 					NextState <= loopGame;
@@ -191,7 +195,7 @@ begin
 								POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 								POSY <= std_logic_vector(to_unsigned(y, POSY'length));
 								y <= y +1;
-							
+
 							-- send drawFrame(x,y)
 							NextState <= DrawFrame;
 						end if;
@@ -274,8 +278,8 @@ begin
 					STATUS <= "01100";
 					POSX <= std_logic_vector(to_unsigned(x, POSX'length));
 					POSY <= std_logic_vector(to_unsigned(y, POSY'length));
+					NextState <= loopGame;
 				end if;
-				NextState <= loopGame;
 
 			when Win =>
 				L <= "01000000";
@@ -284,12 +288,11 @@ begin
 					STATUS <= "00000";
 				end if;
 
+				timmer_mod <= 2;
 				BUZ <= '1';
 
 				if JOY(4)='0' and joy_clk='1' then
 					NextState <= Start;
-				else
-					NextState <= Win;
 				end if;
 
 			when Lose =>
@@ -299,12 +302,11 @@ begin
 					STATUS <= "00001";
 				end if;
 
+				timmer_mod <= 2;
 				BUZ <= '1';
 
 				if JOY(4)='0' and joy_clk='1' then
 					NextState <= Start;
-				else
-					NextState <= Lose;
 				end if;
 
 			when others =>
@@ -315,8 +317,8 @@ begin
 		end if;
 	end process state_name;
 
-	timmer : process(CLK, timmer_reset) is
-		variable sec_count	: integer range 0 to clk_cycle := 0;
+	timmer : process(CLK, timmer_mod) is
+		variable sec_count	: integer range 1 to clk_cycle := 1;
 		variable digit_count	: integer range 0 to seg_cycle := 0;
 
 		variable s0		: std_logic_vector (3 downto 0) := "0000";
@@ -326,21 +328,20 @@ begin
 	begin
 
 			if CLK'event and CLK = '1' then
-				if timmer_reset = '1' then
+			
+				if timmer_mod = 0 then
+					sec_count := sec_count + 1;
+					seed <= sec_count;
+					if sec_count = clk_cycle then
+						s0 := s0 + 1;
+					end if;
+
+				elsif timmer_mod = 1 then
 					s0 := "0000";
 					s1 := "0000";
 					m0 := "0000";
 					m1 := "0000";
-				else
-					sec_count := sec_count + 1;
-					if sec_count = clk_cycle then
-						s0 := s0 + 1;
-					end if;
 				end if;
-
-				MN(7) <= timmer_reset;
-				MN(6 downto 4) <= "000";
-				MN(3 downto 0) <= s0;
 
 				if s0 = "1010" then
 					s0 := "0000";
@@ -403,33 +404,15 @@ begin
 		end if;
 	end process clkdiv_joy;
 
-	seed_name : process (CLK) is
-		variable count : integer range 0 to seed_num := 0;
-	begin
-		if CLK'event and CLK='1' then
-			count := count + 1;
-		end if;
-		seed <= count;
-	end process seed_name;
-
-	--send_parallel : process (baud_clk) is
-	--begin
-	--	if baud_clk'event and baud_clk='1' and is_send='1' then
-			--STATUS <= "1111";
-			--POSX <= "111";
-			--POSY <= "111";
-	--	end if;
-	--end process send_parallel;
-
 	SEG(6 downto 0) <=	"1101111" when BCD = "1001" else -- 9
 								"1111111" when BCD = "1000" else -- 8
 								"0000111" when BCD = "0111" else -- 7
-								"1111101" when BCD = "0101" else -- 5
+								"1111101" when BCD = "0110" else -- 6
+								"1101101" when BCD = "0101" else -- 5
 								"1100110" when BCD = "0100" else -- 4
 								"1001111" when BCD = "0011" else -- 3
 								"1011011" when BCD = "0010" else -- 2
 								"0000110" when BCD = "0001" else -- 1
-								"0111111" when BCD = "0110" else -- 6
-								"1101101";
+								"0111111";
 
 end Behavioral;
