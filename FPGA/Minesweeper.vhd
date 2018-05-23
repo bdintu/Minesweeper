@@ -7,9 +7,9 @@ entity Minesweeper is
 	generic (
 		pattern_num	: integer := 15;
 		clk_cycle	: integer := 17000000;
-		seg_cycle	: integer := 20000000/240;
-		baud_cycle	: integer := 20000000/10;
-		joy_cycle	: integer := 20000000/4
+		seg_cycle	: integer := 25000000/240;
+		baud_cycle	: integer := 25000000/10;
+		joy_cycle	: integer := 25000000/5
 	);
 
 	port (
@@ -170,13 +170,6 @@ begin
 
 				if joy_clk = '1' then
 
-					if JOY(0)='0' or JOY(1)='0' or JOY(2)='0' or JOY(3)='0' or JOY(4)='0' or WAKE='1' then
-						if first_touc = 0 then
-							timmer_mod <= 0;
-							first_touc <= 1;
-						end if;
-					end if;
-
 					if JOY(0) = '0' then		--UP
 						if y > 0 then
 							MN(7 downto 4) <= "0001";
@@ -227,6 +220,10 @@ begin
 						end if;
 
 					elsif JOY(4) = '0' then	--Center
+						if first_touc = 0 then
+							first_touc <= 1;
+							timmer_mod <= 0;
+						end if;
 						if table(use_table, 6*x + y) = 0 then				-- space
 							MN(7 downto 4) <= "0010";
 							STATUS <= "00001";	-- send space
@@ -256,6 +253,10 @@ begin
 						end if;
 
 					elsif WAKE = '1' then
+						if first_touc = 0 then
+							first_touc <= 1;
+							timmer_mod <= 0;
+						end if;
 						if table(use_table, 6*x + y) < 16 and flag_lim > 0 and not(table(use_table, 6*x + y) = 11) then		-- place flag
 							MN(7 downto 4) <= "1000";
 							if table(use_table, 6*x + y) = 10 then
@@ -410,7 +411,7 @@ begin
 	clkdiv_joy : process (CLK, JOY) is
 		variable count : integer range 0 to joy_cycle := 0;
 	begin
-		if CLK'event and CLK='1' and ( JOY(0)='0' or JOY(1)='0' or JOY(2)='0' or JOY(3)='0' or JOY(4)='0' or WAKE='1' ) then
+		if CLK'event and CLK='1' then
 			count := count + 1;
 			if count = joy_cycle then
 				joy_clk <= '1';
